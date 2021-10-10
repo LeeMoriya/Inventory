@@ -12,7 +12,7 @@ using MonoMod.RuntimeDetour;
 public class InventoryMod : BaseUnityPlugin
 {
     public static Player.InputPackage[] invInput = new Player.InputPackage[2];
-    public static GridInventory inventory;
+    public static Inventory inventory;
     private Hook mapHook;
     public InventoryMod()
     {
@@ -25,6 +25,7 @@ public class InventoryMod : BaseUnityPlugin
         On.Player.checkInput += Player_checkInput;
         On.StoryGameSession.AddPlayer += StoryGameSession_AddPlayer;
         On.SaveState.SessionEnded += SaveState_SessionEnded;
+        On.PlayerGraphics.InitiateSprites += PlayerGraphics_InitiateSprites;
         if (mapHook == null)
         {
             mapHook = new Hook(typeof(Player).GetProperty("RevealMap", propFlags).GetGetMethod(), typeof(InventoryMod).GetMethod("Player_get_RevealMap", myMethodFlags));
@@ -35,19 +36,33 @@ public class InventoryMod : BaseUnityPlugin
         }
     }
 
+    private void PlayerGraphics_InitiateSprites(On.PlayerGraphics.orig_InitiateSprites orig, PlayerGraphics self, RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam)
+    {
+        //rCam.room.AddObject(new Backpack());
+        orig.Invoke(self, sLeaser, rCam);
+    }
+
     private void SaveState_SessionEnded(On.SaveState.orig_SessionEnded orig, SaveState self, RainWorldGame game, bool survived, bool newMalnourished)
     {
         orig.Invoke(self, game, survived, newMalnourished);
-        if(survived == true)
+        int saveSlot = game.rainWorld.options.saveSlot;
+        int slugcat = self.saveStateNumber;
+        //Survived without starving
+        if(survived == true && !newMalnourished)
         {
-            InventorySave.Save();
+            InventorySave.Save(saveSlot, slugcat);
+        }
+        else if(!newMalnourished)
+        {
+            InventorySave.Load(saveSlot, slugcat);
         }
     }
 
+    //Load inventory contents at cycle start
     private void StoryGameSession_AddPlayer(On.StoryGameSession.orig_AddPlayer orig, StoryGameSession self, AbstractCreature player)
     {
         orig.Invoke(self, player);
-        InventorySave.Load();
+        InventorySave.Load(self.game.rainWorld.options.saveSlot, self.saveStateNumber);
     }
 
     public delegate bool orig_RevealMap(Player self);
@@ -58,6 +73,7 @@ public class InventoryMod : BaseUnityPlugin
         return invInput[0].mp && inventory.showMap;
     }
 
+    //Inventory controls
     private void Player_checkInput(On.Player.orig_checkInput orig, Player self)
     {
         for (int i = self.input.Length - 1; i > 0; i--)
@@ -114,6 +130,7 @@ public class InventoryMod : BaseUnityPlugin
         }
     }
 
+    //Add inventory type to player HUD
     private void HUD_InitSinglePlayerHud(On.HUD.HUD.orig_InitSinglePlayerHud orig, HUD.HUD self, RoomCamera cam)
     {
         orig.Invoke(self, cam);

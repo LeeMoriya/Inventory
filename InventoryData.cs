@@ -5,6 +5,7 @@ using System.Text;
 using UnityEngine;
 using RWCustom;
 using System.Text.RegularExpressions;
+using HUD;
 
 
 public static class InventoryData
@@ -16,7 +17,8 @@ public static class InventoryData
         Cycle
     }
     //Number of available inventory slots
-    public static IntVector2 invSize = new IntVector2(4, 2);
+    public static IntVector2 invSize = new IntVector2(3, 2);
+    public static int invSlots = 7;
     //Inventory type
     public static InventoryType inventoryType = InventoryType.Grid;
     //Array of stored objects
@@ -186,9 +188,23 @@ public static class InventoryData
             {
                 this.type = apo.type;
                 this.data = apo.ToString();
-                ItemSymbol.IconSymbolData symbol = (ItemSymbol.IconSymbolData)ItemSymbol.SymbolDataFromItem(apo);
-                this.spriteName = ItemSymbol.SpriteNameForItem(this.type, symbol.intData);
-                this.spriteColor = ItemSymbol.ColorForItem(this.type, symbol.intData);
+                ItemSymbol.IconSymbolData symbol;
+                try
+                {
+                    symbol = (ItemSymbol.IconSymbolData)ItemSymbol.SymbolDataFromItem(apo);
+                    this.spriteName = ItemSymbol.SpriteNameForItem(this.type, symbol.intData);
+                    this.spriteColor = ItemSymbol.ColorForItem(this.type, symbol.intData);
+                }
+                catch
+                {
+                    this.spriteName = "Futile_White";
+                    this.spriteColor = new Color(1f, 0f, 1f);
+                    if(this.type == AbstractPhysicalObject.AbstractObjectType.KarmaFlower)
+                    {
+                        this.spriteName = "FlowerMarker";
+                        this.spriteColor = RainWorld.GoldRGB;
+                    }
+                }
             }
             //Stored object is a creature
             if (crit != null)
@@ -196,9 +212,18 @@ public static class InventoryData
                 this.type = crit.type;
                 this.critType = crit.creatureTemplate.type;
                 this.data = SaveState.AbstractCreatureToString(crit);
-                CreatureSymbol.IconSymbolData creature = CreatureSymbol.SymbolDataFromCreature(crit);
-                this.spriteName = CreatureSymbol.SpriteNameOfCreature(creature);
-                this.spriteColor = CreatureSymbol.ColorOfCreature(creature);
+                CreatureSymbol.IconSymbolData creature;
+                try
+                {
+                    creature = CreatureSymbol.SymbolDataFromCreature(crit);
+                    this.spriteName = CreatureSymbol.SpriteNameOfCreature(creature);
+                    this.spriteColor = CreatureSymbol.ColorOfCreature(creature);
+                }
+                catch
+                {
+                    this.spriteName = "Futile_White";
+                    this.spriteColor = new Color(1f, 0f, 1f);
+                }
             }
         }
 
