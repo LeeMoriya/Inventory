@@ -64,6 +64,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Backpack.cs" />
+    <Compile Include="InventoryConfig.cs" />
     <Compile Include="InventoryHUD.cs" />
     <Compile Include="InventorySlot.cs" />
     <Compile Include="InventoryData.cs" />

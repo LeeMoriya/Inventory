@@ -6,17 +6,18 @@ using BepInEx;
 using UnityEngine;
 using System.Reflection;
 using MonoMod.RuntimeDetour;
-
+using OptionalUI;
 
 [BepInPlugin("LeeMoriya.Inventory", "Inventory", "0.1")]
 public class InventoryMod : BaseUnityPlugin
 {
+    public static BaseUnityPlugin instance;
     public static Player.InputPackage[] invInput = new Player.InputPackage[2];
     public static Inventory inventory;
     private Hook mapHook;
     public InventoryMod()
     {
-
+        instance = this;
     }
 
     public void OnEnable()
@@ -35,6 +36,8 @@ public class InventoryMod : BaseUnityPlugin
             mapHook.Apply();
         }
     }
+
+    public static OptionInterface LoadOI() => new InventoryConfig();
 
     private void PlayerGraphics_InitiateSprites(On.PlayerGraphics.orig_InitiateSprites orig, PlayerGraphics self, RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam)
     {
