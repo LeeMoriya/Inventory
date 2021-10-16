@@ -11,8 +11,14 @@ using OptionalUI;
 [BepInPlugin("LeeMoriya.Inventory", "Inventory", "0.1")]
 public class InventoryMod : BaseUnityPlugin
 {
+    //AutoUpdate
+    public string updateURL = "http://beestuff.pythonanywhere.com/audb/api/mods/4/7";
+    public int version = 0;
+    public string keyE = "AQAB";
+    public string keyN = "lDaM5h0hJUvZcIdiWXH4qfdia/V8UWzikqRIiC9jVGA87jMrafo4EWOTk0MMIQZWHVy+msVzvEAVR3V45wZShFu7ylUndroL5u4zyqHfVeAeDIALfBrM3J4BIM1rMi4wieYdLIF6t2Uj4GVH7iU59AIfobew1vICUILu9Zib/Aw2QY6Nc+0Cz6Lw3xh7DL/trIMaW7yQfYRZUaEZBHelN2JGyUjKkbby4vL6gySfGlVl1OH0hYYhrhNwnQrOow8WXFMIu/WyTA3cY3wqkjd4/WRJ+EvYtMKTwfG+TZiHGst9Bg1ZTFfvEvrTFiPadTf19iUnfyL/QJaTAD8qe+rba5KwirIElovqFpYNH9tAr7SpjixjbT3Igmz+SlqGa9wSbm1QWt/76QqpyAYV/b5G/VzbytoZrhkEVdGuaotD4tXh462AhK5xoigB8PEt+T3nWuPdoZlVo5hRCxoNleH4yxLpVv8C7TpQgQHDqzHMcEX79xjiYiCvigCq7lLEdxUD0fhnxSYVK0O+y7T+NXkk3is/XqJxdesgyYUMT81MSou9Ur/2nv9H8IvA9QeIqso05hK3c496UOaRJS27WJhrxABtU+HHtxo9SifmXjisDj3IV46uTeVp5bivDTu1yBymgnU8qli/xmwWxKvOisi9ZOZsg4vFHaY31gdUBWOz4dU=";
+
+    public static string versionNumber = "v0.1a";
     public static BaseUnityPlugin instance;
-    public static Player.InputPackage[] invInput = new Player.InputPackage[2];
     public static Inventory inventory;
     private Hook mapHook;
     public InventoryMod()
@@ -22,11 +28,13 @@ public class InventoryMod : BaseUnityPlugin
 
     public void OnEnable()
     {
+        InventorySave.SaveHooks();
         On.HUD.HUD.InitSinglePlayerHud += HUD_InitSinglePlayerHud;
         On.Player.checkInput += Player_checkInput;
         On.StoryGameSession.AddPlayer += StoryGameSession_AddPlayer;
         On.SaveState.SessionEnded += SaveState_SessionEnded;
         On.PlayerGraphics.InitiateSprites += PlayerGraphics_InitiateSprites;
+        On.MainLoopProcess.RawUpdate += MainLoopProcess_RawUpdate;
         if (mapHook == null)
         {
             mapHook = new Hook(typeof(Player).GetProperty("RevealMap", propFlags).GetGetMethod(), typeof(InventoryMod).GetMethod("Player_get_RevealMap", myMethodFlags));
@@ -35,6 +43,18 @@ public class InventoryMod : BaseUnityPlugin
         {
             mapHook.Apply();
         }
+    }
+
+    private void MainLoopProcess_RawUpdate(On.MainLoopProcess.orig_RawUpdate orig, MainLoopProcess self, float dt)
+    {
+        if (inventory != null && InventoryConfig.slowMenu && inventory.isShown && inventory.fade >= 1f)
+        {
+            if (self.framesPerSecond > 18)
+            {
+                self.framesPerSecond = 18;
+            }
+        }
+        orig.Invoke(self, dt);
     }
 
     public static OptionInterface LoadOI() => new InventoryConfig();
@@ -51,11 +71,11 @@ public class InventoryMod : BaseUnityPlugin
         int saveSlot = game.rainWorld.options.saveSlot;
         int slugcat = self.saveStateNumber;
         //Survived without starving
-        if(survived == true && !newMalnourished)
+        if (survived == true && !newMalnourished)
         {
             InventorySave.Save(saveSlot, slugcat);
         }
-        else if(!newMalnourished)
+        else if (!newMalnourished)
         {
             InventorySave.Load(saveSlot, slugcat);
         }
@@ -73,63 +93,17 @@ public class InventoryMod : BaseUnityPlugin
     BindingFlags myMethodFlags = BindingFlags.Static | BindingFlags.Public;
     public static bool Player_get_RevealMap(orig_RevealMap orig, Player self)
     {
-        return invInput[0].mp && inventory.showMap;
+        return self.mapInput.mp && inventory.showMap;
     }
 
     //Inventory controls
     private void Player_checkInput(On.Player.orig_checkInput orig, Player self)
     {
-        for (int i = self.input.Length - 1; i > 0; i--)
+        int blink = (self.graphicsModule as PlayerGraphics).blink;
+        orig.Invoke(self);
+        if (inventory.isShown)
         {
-            self.input[i] = self.input[i - 1];
-        }
-        invInput[1] = invInput[0];
-        if (self.stun == 0 && !self.dead)
-        {
-            if (self.controller != null)
-            {
-                self.input[0] = self.controller.GetInput();
-            }
-            else
-            {
-                self.input[0] = RWInput.PlayerInput(self.playerState.playerNumber, self.room.game.rainWorld.options, self.room.game.setupValues);
-            }
-        }
-        else
-        {
-            self.input[0] = new Player.InputPackage(self.room.game.rainWorld.options.controls[self.playerState.playerNumber].gamePad, 0, 0, false, false, false, false, false);
-        }
-        self.mapInput = self.input[0];
-        invInput[0] = self.input[0];
-        if (inventory.isShown && self.input[0].mp)
-        {
-            self.input[0].x = 0;
-            self.input[0].y = 0;
-            self.input[0].analogueDir = self.input[0].analogueDir * 0f;
-            self.input[0].jmp = false;
-            self.input[0].thrw = false;
-            self.input[0].pckp = false;
-            return;
-        }
-        if ((self.standStillOnMapButton && self.input[0].mp) || self.Sleeping)
-        {
-            self.input[0].x = 0;
-            self.input[0].y = 0;
-            Player.InputPackage[] input = self.input;
-            int num = 0;
-            input[num].analogueDir = input[num].analogueDir * 0f;
-            self.input[0].jmp = false;
-            self.input[0].thrw = false;
-            self.input[0].pckp = false;
-            self.Blink(5);
-        }
-        if (self.superLaunchJump > 10 && self.input[0].jmp && self.input[1].jmp && self.input[2].jmp && self.input[0].y < 1)
-        {
-            self.input[0].x = 0;
-        }
-        if (self.animation == Player.AnimationIndex.Roll && self.input[0].x == 0 && self.input[0].downDiagonal != 0)
-        {
-            self.input[0].x = self.input[0].downDiagonal;
+            (self.graphicsModule as PlayerGraphics).blink = blink;
         }
     }
 

@@ -21,6 +21,7 @@ public class Inventory : HudPart
     public IntVector2 cursorPos = new IntVector2(0, 0);
     public int inputDelay = 0;
     public float fade = 0f;
+    public Player.InputPackage invInput = new Player.InputPackage();
 
     public Inventory(HUD.HUD hud) : base(hud)
     {
@@ -63,13 +64,24 @@ public class Inventory : HudPart
                         //Carried object is a creature
                         if (apo.type == AbstractPhysicalObject.AbstractObjectType.Creature)
                         {
+                            if (!InventoryConfig.creatureStorage)
+                            {
+                                this.hud.PlaySound(SoundID.MENU_Error_Ping);
+                                return;
+                            }
                             activeSlot.storedItem = InventoryData.NewStoredObject(null, apo as AbstractCreature, index);
                             player.room.RemoveObject((apo as AbstractCreature).realizedCreature);
                         }
                         //Carried object is an item
                         else
                         {
+                            if(apo.type == AbstractPhysicalObject.AbstractObjectType.KarmaFlower && !InventoryConfig.karmaStorage)
+                            {
+                                this.hud.PlaySound(SoundID.MENU_Error_Ping);
+                                return;
+                            }
                             activeSlot.storedItem = InventoryData.NewStoredObject(apo, null, index);
+                            apo.Room.entities.Remove(apo);
                             apo.destroyOnAbstraction = true;
                             apo.Abstractize(apo.pos);
                         }
@@ -179,7 +191,7 @@ public class GridInventory : Inventory
         if (player != null && player.room != null)
         {
             //Holding Map
-            if (InventoryMod.invInput[0].mp && !showMap)
+            if (player.mapInput.mp && !showMap)
             {
                 this.isShown = true;
             }
@@ -188,7 +200,7 @@ public class GridInventory : Inventory
                 this.isShown = false;
             }
             //Release Map
-            if (!InventoryMod.invInput[0].mp)
+            if (!player.mapInput.mp)
             {
                 this.showMap = false;
                 this.isShown = false;
@@ -231,10 +243,10 @@ public class GridInventory : Inventory
             {
                 inputDelay--;
             }
-            if (InventoryMod.invInput[0].mp)
+            if (player.mapInput.mp)
             {
                 //Toggle map
-                if (InventoryMod.invInput[0].pckp && inputDelay <= 0)
+                if (player.mapInput.pckp && inputDelay <= 0)
                 {
                     if (showMap)
                     {
@@ -255,13 +267,13 @@ public class GridInventory : Inventory
                     return;
                 }
                 //Select slot
-                if (InventoryMod.invInput[0].jmp && !InventoryMod.invInput[1].jmp)
+                if (player.mapInput.jmp && !invInput.jmp)
                 {
                     inputDelay = 15;
                     StoreItem();
                 }
                 //Left
-                if ((InventoryMod.invInput[0].x < 0f && InventoryMod.invInput[1].x == 0f) || (InventoryMod.invInput[0].x < 0f && inputDelay <= 0))
+                if ((player.mapInput.x < 0f && invInput.x == 0f) || (player.mapInput.x < 0f && inputDelay <= 0))
                 {
                     if (cursorPos.x == 0)
                     {
@@ -275,7 +287,7 @@ public class GridInventory : Inventory
                     this.hud.PlaySound(SoundID.MENU_Button_Standard_Button_Pressed);
                 }
                 //Right
-                if ((InventoryMod.invInput[0].x > 0f && InventoryMod.invInput[1].x == 0f) || (InventoryMod.invInput[0].x > 0f && inputDelay <= 0))
+                if ((player.mapInput.x > 0f && invInput.x == 0f) || (player.mapInput.x > 0f && inputDelay <= 0))
                 {
                     if (cursorPos.x == invSize.x - 1)
                     {
@@ -289,7 +301,7 @@ public class GridInventory : Inventory
                     this.hud.PlaySound(SoundID.MENU_Button_Standard_Button_Pressed);
                 }
                 //Up
-                if ((InventoryMod.invInput[0].y > 0f && InventoryMod.invInput[1].y == 0f) || (InventoryMod.invInput[0].y > 0f && inputDelay <= 0))
+                if ((player.mapInput.y > 0f && invInput.y == 0f) || (player.mapInput.y > 0f && inputDelay <= 0))
                 {
                     if (cursorPos.y == invSize.y - 1)
                     {
@@ -303,7 +315,7 @@ public class GridInventory : Inventory
                     this.hud.PlaySound(SoundID.MENU_Button_Standard_Button_Pressed);
                 }
                 //Down
-                if ((InventoryMod.invInput[0].y < 0f && InventoryMod.invInput[1].y == 0f) || (InventoryMod.invInput[0].y < 0f && inputDelay <= 0))
+                if ((player.mapInput.y < 0f && invInput.y == 0f) || (player.mapInput.y < 0f && inputDelay <= 0))
                 {
                     if (cursorPos.y == 0)
                     {
@@ -329,6 +341,7 @@ public class GridInventory : Inventory
                 this.inventorySlots[i].isSelected = false;
             }
         }
+        this.invInput = player.mapInput;
     }
 }
 
@@ -378,7 +391,7 @@ public class RadialInventory : Inventory
         Player player = (this.hud.owner as Player);
         if (player != null && player.room != null)
         {
-            if (InventoryMod.invInput[0].mp && !showMap)
+            if (player.mapInput.mp && !showMap)
             {
                 this.isShown = true;
             }
@@ -386,7 +399,7 @@ public class RadialInventory : Inventory
             {
                 this.isShown = false;
             }
-            if (!InventoryMod.invInput[0].mp)
+            if (!player.mapInput.mp)
             {
                 this.showMap = false;
                 this.isShown = false;
@@ -422,10 +435,10 @@ public class RadialInventory : Inventory
             {
                 inputDelay--;
             }
-            if (InventoryMod.invInput[0].mp)
+            if (player.mapInput.mp)
             {
                 //Toggle map
-                if (InventoryMod.invInput[0].pckp && inputDelay <= 0)
+                if (player.mapInput.pckp && inputDelay <= 0)
                 {
                     if (showMap)
                     {
@@ -439,7 +452,7 @@ public class RadialInventory : Inventory
                     inputDelay = 12;
                 }
                 //Left
-                if ((InventoryMod.invInput[0].x < 0f && InventoryMod.invInput[1].x == 0f) || (InventoryMod.invInput[0].x < 0f && inputDelay <= 0))
+                if ((player.mapInput.x < 0f && invInput.x == 0f) || (player.mapInput.x < 0f && inputDelay <= 0))
                 {
                     selectedSlot--;
                     if(selectedSlot == -1)
@@ -462,7 +475,7 @@ public class RadialInventory : Inventory
                     Debug.Log("Slot: " + selectedSlot);
                 }
                 //Right
-                if ((InventoryMod.invInput[0].x > 0f && InventoryMod.invInput[1].x == 0f) || (InventoryMod.invInput[0].x > 0f && inputDelay <= 0))
+                if ((player.mapInput.x > 0f && invInput.x == 0f) || (player.mapInput.x > 0f && inputDelay <= 0))
                 {
                     selectedSlot++;
                     if (selectedSlot >= inventorySlots.Length)
@@ -492,7 +505,7 @@ public class RadialInventory : Inventory
                     return;
                 }
                 //Select slot
-                if (InventoryMod.invInput[0].jmp && !InventoryMod.invInput[1].jmp)
+                if (player.mapInput.jmp && !invInput.jmp)
                 {
                     inputDelay = 15;
                     StoreItem();

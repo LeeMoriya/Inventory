@@ -34,7 +34,11 @@ public class InventorySlot : HudPart
         }
         else
         {
-            if (this.fade > 0f)
+            if (InventoryConfig.slowMenu)
+            {
+                this.fade -= 20f * Time.deltaTime;
+            }
+            else
             {
                 this.fade -= 8f * Time.deltaTime;
             }
@@ -135,7 +139,11 @@ public class InventorySlot : HudPart
         this.sprites[this.CornerSprite(2)].y = vector.y + vector2.y - 3.5f;
         this.sprites[this.CornerSprite(3)].x = vector.x + vector2.x - 3.5f;
         this.sprites[this.CornerSprite(3)].y = vector.y + 3.5f;
-        Color color = new Color(1f, 1f, 1f);
+        Color color = InventoryConfig.customCursorColor;
+        if (InventoryConfig.rainbowCursor)
+        {
+            color = Custom.HSL2RGB(Mathf.Lerp(0f, 1f, Mathf.PingPong(Time.time * 0.7f, 1)), 0.85f, 0.65f);
+        }
         for (int j = 0; j < 4; j++)
         {
             this.sprites[this.SideSprite(j)].color = color;
@@ -173,42 +181,77 @@ public class InventorySlot : HudPart
             if (inventory.fade > 0.4f)
             {
                 //Edge sprites
-                this.sprites[this.SideSprite(0)].alpha = this.fade;
-                this.sprites[this.SideSprite(2)].alpha = this.fade;
-                this.sprites[this.SideSprite(1)].alpha = this.fade;
-                this.sprites[this.SideSprite(3)].alpha = this.fade;
-                this.sprites[this.CornerSprite(0)].alpha = this.fade;
-                this.sprites[this.CornerSprite(2)].alpha = this.fade;
-                this.sprites[this.CornerSprite(1)].alpha = this.fade;
-                this.sprites[this.CornerSprite(3)].alpha = this.fade;
-                if (this.storedItem != null)
+                if(this.storedItem != null && !this.isSelected)
                 {
-                    this.sprites[this.SideSprite(0)].color = Color.Lerp(new Color(1f, 1f, 1f), this.storedItem.spriteColor, this.fade * 0.8f);
-                    this.sprites[this.SideSprite(2)].color = Color.Lerp(new Color(1f, 1f, 1f), this.storedItem.spriteColor, this.fade * 0.8f);
-                    this.sprites[this.SideSprite(1)].color = Color.Lerp(new Color(1f, 1f, 1f), this.storedItem.spriteColor, this.fade * 0.8f);
-                    this.sprites[this.SideSprite(3)].color = Color.Lerp(new Color(1f, 1f, 1f), this.storedItem.spriteColor, this.fade * 0.8f);
-                    this.sprites[this.CornerSprite(0)].color = Color.Lerp(new Color(1f, 1f, 1f), this.storedItem.spriteColor, this.fade * 0.8f);
-                    this.sprites[this.CornerSprite(2)].color = Color.Lerp(new Color(1f, 1f, 1f), this.storedItem.spriteColor, this.fade * 0.8f);
-                    this.sprites[this.CornerSprite(1)].color = Color.Lerp(new Color(1f, 1f, 1f), this.storedItem.spriteColor, this.fade * 0.8f);
-                    this.sprites[this.CornerSprite(3)].color = Color.Lerp(new Color(1f, 1f, 1f), this.storedItem.spriteColor, this.fade * 0.8f);
+                    this.sprites[this.SideSprite(0)].alpha = 0.4f;
+                    this.sprites[this.SideSprite(2)].alpha = 0.4f;
+                    this.sprites[this.SideSprite(1)].alpha = 0.4f;
+                    this.sprites[this.SideSprite(3)].alpha = 0.4f;
+                    this.sprites[this.CornerSprite(0)].alpha = 0.4f;
+                    this.sprites[this.CornerSprite(2)].alpha = 0.4f;
+                    this.sprites[this.CornerSprite(1)].alpha = 0.4f;
+                    this.sprites[this.CornerSprite(3)].alpha = 0.4f;
                 }
                 else
                 {
-                    this.sprites[this.SideSprite(0)].color = new Color(0.8f, 0.8f, 0.8f);
-                    this.sprites[this.SideSprite(2)].color = new Color(0.8f, 0.8f, 0.8f);
-                    this.sprites[this.SideSprite(1)].color = new Color(0.8f, 0.8f, 0.8f);
-                    this.sprites[this.SideSprite(3)].color = new Color(0.8f, 0.8f, 0.8f);
-                    this.sprites[this.CornerSprite(0)].color = new Color(0.8f, 0.8f, 0.8f);
-                    this.sprites[this.CornerSprite(2)].color = new Color(0.8f, 0.8f, 0.8f);
-                    this.sprites[this.CornerSprite(1)].color = new Color(0.8f, 0.8f, 0.8f);
-                    this.sprites[this.CornerSprite(3)].color = new Color(0.8f, 0.8f, 0.8f);
+                    this.sprites[this.SideSprite(0)].alpha = this.fade;
+                    this.sprites[this.SideSprite(2)].alpha = this.fade;
+                    this.sprites[this.SideSprite(1)].alpha = this.fade;
+                    this.sprites[this.SideSprite(3)].alpha = this.fade;
+                    this.sprites[this.CornerSprite(0)].alpha = this.fade;
+                    this.sprites[this.CornerSprite(2)].alpha = this.fade;
+                    this.sprites[this.CornerSprite(1)].alpha = this.fade;
+                    this.sprites[this.CornerSprite(3)].alpha = this.fade;
+                }
+                if (this.storedItem != null)
+                {
+                    if (this.isSelected && InventoryConfig.rainbowCursor)
+                    {
+                        this.sprites[this.SideSprite(0)].color = color;
+                        this.sprites[this.SideSprite(2)].color = color;
+                        this.sprites[this.SideSprite(1)].color = color;
+                        this.sprites[this.SideSprite(3)].color = color;
+                        this.sprites[this.CornerSprite(0)].color = color;
+                        this.sprites[this.CornerSprite(2)].color = color;
+                        this.sprites[this.CornerSprite(1)].color = color;
+                        this.sprites[this.CornerSprite(3)].color = color;
+                    }
+                    else
+                    {
+                        this.sprites[this.SideSprite(0)].color = Color.Lerp(new Color(0f, 0f, 0f), this.storedItem.spriteColor, 0.8f);
+                        this.sprites[this.SideSprite(2)].color = Color.Lerp(new Color(0f, 0f, 0f), this.storedItem.spriteColor, 0.8f);
+                        this.sprites[this.SideSprite(1)].color = Color.Lerp(new Color(0f, 0f, 0f), this.storedItem.spriteColor, 0.8f);
+                        this.sprites[this.SideSprite(3)].color = Color.Lerp(new Color(0f, 0f, 0f), this.storedItem.spriteColor, 0.8f);
+                        this.sprites[this.CornerSprite(0)].color = Color.Lerp(new Color(0f, 0f, 0f), this.storedItem.spriteColor, 0.8f);
+                        this.sprites[this.CornerSprite(2)].color = Color.Lerp(new Color(0f, 0f, 0f), this.storedItem.spriteColor, 0.8f);
+                        this.sprites[this.CornerSprite(1)].color = Color.Lerp(new Color(0f, 0f, 0f), this.storedItem.spriteColor, 0.8f);
+                        this.sprites[this.CornerSprite(3)].color = Color.Lerp(new Color(0f, 0f, 0f), this.storedItem.spriteColor, 0.8f);
+                    }
+                }
+                else
+                {
+                    this.sprites[this.SideSprite(0)].color = color;
+                    this.sprites[this.SideSprite(2)].color = color;
+                    this.sprites[this.SideSprite(1)].color = color;
+                    this.sprites[this.SideSprite(3)].color = color;
+                    this.sprites[this.CornerSprite(0)].color = color;
+                    this.sprites[this.CornerSprite(2)].color = color;
+                    this.sprites[this.CornerSprite(1)].color = color;
+                    this.sprites[this.CornerSprite(3)].color = color;
                 }
                 //Fill sprites
                 for (int j = 0; j < 9; j++)
                 {
                     if (this.storedItem != null)
                     {
-                        this.sprites[j].color = Color.Lerp(Color.Lerp(new Color(0f, 0f, 0f), this.storedItem.spriteColor, 0.1f), this.storedItem.spriteColor, this.fade * 0.5f);
+                        if (InventoryConfig.rainbowCursor && this.isSelected)
+                        {
+                            this.sprites[j].color = Color.Lerp(Color.Lerp(new Color(0f, 0f, 0f), color, 0.1f), color, this.fade * 0.5f);
+                        }
+                        else
+                        {
+                            this.sprites[j].color = Color.Lerp(Color.Lerp(new Color(0f, 0f, 0f), this.storedItem.spriteColor, 0.1f), this.storedItem.spriteColor, this.fade * 0.5f);
+                        }
                         if (this.isSelected)
                         {
                             this.sprites[j].alpha = Mathf.Lerp(0f, 0.45f, this.fade);
@@ -223,10 +266,6 @@ public class InventorySlot : HudPart
                         this.sprites[j].color = new Color(0f, 0f, 0f);
                         this.sprites[j].alpha = Mathf.Lerp(0f, 0.35f, inventory.fade);
                     }
-                    //if (this.sprites[j].alpha < 0.35f)
-                    //{
-                    //    this.sprites[j].alpha += 0.75f * Time.deltaTime;
-                    //}
                 }
                 //Item sprite
                 if (this.storedItem != null)
