@@ -14,4 +14,4 @@ Jump - Store/retrieve
 Pickup - Toggle Map
 
 ## Download
-Download the latest version [here]
+Download the latest version [here](https://github.com/LeeMoriya/Inventory/releases/tag/V1.0a)
