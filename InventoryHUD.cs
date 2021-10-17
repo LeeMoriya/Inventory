@@ -137,7 +137,36 @@ public class Inventory : HudPart
                         {
                             if (player.CanIPickThisUp(apo.realizedObject))
                             {
-                                player.SlugcatGrab(apo.realizedObject, i);
+                                //Spear check
+                                bool hasSpear = false;
+                                for (int s = 0; s < 2; s++)
+                                {
+                                    if(player.grasps[s] != null && player.grasps[s].grabbed != null)
+                                    {
+                                        if(player.grasps[s].grabbed is Spear)
+                                        {
+                                            hasSpear = true;
+                                        }
+                                        //Retrieving two-handed object = Empty current grasps
+                                        if (player.Grabability(apo.realizedObject) != Player.ObjectGrabability.OneHand && player.Grabability(apo.realizedObject) != Player.ObjectGrabability.BigOneHand)
+                                        {
+                                            player.grasps[s].Release();
+                                        }
+                                        //Player is holding two-handed object and retrieving something = Empty current grasps
+                                        else if(player.Grabability(player.grasps[s].grabbed) != Player.ObjectGrabability.OneHand && player.Grabability(player.grasps[s].grabbed) != Player.ObjectGrabability.BigOneHand)
+                                        {
+                                            player.grasps[s].Release();
+                                        }
+                                    }
+                                }
+                                if(hasSpear && apo.type == AbstractPhysicalObject.AbstractObjectType.Spear && player.spearOnBack != null && !player.spearOnBack.HasASpear)
+                                {
+                                    player.spearOnBack.SpearToBack(apo.realizedObject as Spear);
+                                }
+                                else
+                                {
+                                    player.SlugcatGrab(apo.realizedObject, i);
+                                }
                             }
                         }
                     }
@@ -202,7 +231,7 @@ public class GridInventory : Inventory
             //Release Map
             if (!player.mapInput.mp)
             {
-                this.showMap = false;
+                //this.showMap = false;
                 this.isShown = false;
             }
             //Position

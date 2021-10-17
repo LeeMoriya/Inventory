@@ -8,16 +8,16 @@ using System.Reflection;
 using MonoMod.RuntimeDetour;
 using OptionalUI;
 
-[BepInPlugin("LeeMoriya.Inventory", "Inventory", "0.1")]
+[BepInPlugin("LeeMoriya.Inventory", "Inventory", "0.11")]
 public class InventoryMod : BaseUnityPlugin
 {
     //AutoUpdate
     public string updateURL = "http://beestuff.pythonanywhere.com/audb/api/mods/4/7";
-    public int version = 0;
+    public int version = 1;
     public string keyE = "AQAB";
     public string keyN = "lDaM5h0hJUvZcIdiWXH4qfdia/V8UWzikqRIiC9jVGA87jMrafo4EWOTk0MMIQZWHVy+msVzvEAVR3V45wZShFu7ylUndroL5u4zyqHfVeAeDIALfBrM3J4BIM1rMi4wieYdLIF6t2Uj4GVH7iU59AIfobew1vICUILu9Zib/Aw2QY6Nc+0Cz6Lw3xh7DL/trIMaW7yQfYRZUaEZBHelN2JGyUjKkbby4vL6gySfGlVl1OH0hYYhrhNwnQrOow8WXFMIu/WyTA3cY3wqkjd4/WRJ+EvYtMKTwfG+TZiHGst9Bg1ZTFfvEvrTFiPadTf19iUnfyL/QJaTAD8qe+rba5KwirIElovqFpYNH9tAr7SpjixjbT3Igmz+SlqGa9wSbm1QWt/76QqpyAYV/b5G/VzbytoZrhkEVdGuaotD4tXh462AhK5xoigB8PEt+T3nWuPdoZlVo5hRCxoNleH4yxLpVv8C7TpQgQHDqzHMcEX79xjiYiCvigCq7lLEdxUD0fhnxSYVK0O+y7T+NXkk3is/XqJxdesgyYUMT81MSou9Ur/2nv9H8IvA9QeIqso05hK3c496UOaRJS27WJhrxABtU+HHtxo9SifmXjisDj3IV46uTeVp5bivDTu1yBymgnU8qli/xmwWxKvOisi9ZOZsg4vFHaY31gdUBWOz4dU=";
 
-    public static string versionNumber = "v0.1a";
+    public static string versionNumber = "v1.0b";
     public static BaseUnityPlugin instance;
     public static Inventory inventory;
     private Hook mapHook;
@@ -85,7 +85,10 @@ public class InventoryMod : BaseUnityPlugin
     private void StoryGameSession_AddPlayer(On.StoryGameSession.orig_AddPlayer orig, StoryGameSession self, AbstractCreature player)
     {
         orig.Invoke(self, player);
-        InventorySave.Load(self.game.rainWorld.options.saveSlot, self.saveStateNumber);
+        if (!self.saveState.malnourished)
+        {
+            InventorySave.Load(self.game.rainWorld.options.saveSlot, self.saveStateNumber);
+        }
     }
 
     public delegate bool orig_RevealMap(Player self);
@@ -99,9 +102,13 @@ public class InventoryMod : BaseUnityPlugin
     //Inventory controls
     private void Player_checkInput(On.Player.orig_checkInput orig, Player self)
     {
-        int blink = (self.graphicsModule as PlayerGraphics).blink;
+        int blink = 0;
+        if(self != null && self.graphicsModule != null)
+        {
+            blink = (self.graphicsModule as PlayerGraphics).blink;
+        }
         orig.Invoke(self);
-        if (inventory.isShown)
+        if (inventory != null && self != null && self.graphicsModule != null && inventory.isShown)
         {
             (self.graphicsModule as PlayerGraphics).blink = blink;
         }
