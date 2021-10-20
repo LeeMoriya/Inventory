@@ -17,7 +17,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>..\..\..\..\..\Program Files %28x86%29\Steam\steamapps\common\Rain World - Backup\Mods\</OutputPath>
+    <OutputPath>E:\Games\Rain World\Mods\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -32,23 +32,23 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Assembly-CSharp">
-      <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Rain World - Backup\Mods\Assembly-CSharp.dll</HintPath>
+      <HintPath>E:\Games\Rain World\Mods\Assembly-CSharp.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="BepInEx">
-      <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Rain World\BepInEx\core\BepInEx.dll</HintPath>
+      <HintPath>E:\Games\Rain World\BepInEx\core\BepInEx.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="ConfigMachine">
-      <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Rain World - Backup\Mods\ConfigMachine.dll</HintPath>
+      <HintPath>E:\Games\Rain World\Mods\ConfigMachine.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="HOOKS-Assembly-CSharp">
-      <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Rain World - Backup\Mods\HOOKS-Assembly-CSharp.dll</HintPath>
+      <HintPath>E:\Games\Rain World\Mods\HOOKS-Assembly-CSharp.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="MonoMod.RuntimeDetour">
-      <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Rain World\BepInEx\core\MonoMod.RuntimeDetour.dll</HintPath>
+      <HintPath>E:\Games\Rain World\BepInEx\core\MonoMod.RuntimeDetour.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="System" />
@@ -58,7 +58,7 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
     <Reference Include="UnityEngine">
-      <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Rain World - Backup\Mods\UnityEngine.dll</HintPath>
+      <HintPath>E:\Games\Rain World\Mods\UnityEngine.dll</HintPath>
       <Private>False</Private>
     </Reference>
   </ItemGroup>
