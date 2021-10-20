@@ -35,6 +35,7 @@ public class InventoryMod : BaseUnityPlugin
         On.SaveState.SessionEnded += SaveState_SessionEnded;
         On.PlayerGraphics.InitiateSprites += PlayerGraphics_InitiateSprites;
         On.MainLoopProcess.RawUpdate += MainLoopProcess_RawUpdate;
+        On.Player.Grabability += Player_Grabability;
         if (mapHook == null)
         {
             mapHook = new Hook(typeof(Player).GetProperty("RevealMap", propFlags).GetGetMethod(), typeof(InventoryMod).GetMethod("Player_get_RevealMap", myMethodFlags));
@@ -43,6 +44,15 @@ public class InventoryMod : BaseUnityPlugin
         {
             mapHook.Apply();
         }
+    }
+
+    private int Player_Grabability(On.Player.orig_Grabability orig, Player self, PhysicalObject obj)
+    {
+        if(obj is Creature && !(obj is Player))
+        {
+            return (int)Player.ObjectGrabability.OneHand;
+        }
+        return orig.Invoke(self, obj);
     }
 
     private void MainLoopProcess_RawUpdate(On.MainLoopProcess.orig_RawUpdate orig, MainLoopProcess self, float dt)

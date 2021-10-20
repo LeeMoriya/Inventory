@@ -71,6 +71,7 @@ public class Inventory : HudPart
                             }
                             activeSlot.storedItem = InventoryData.NewStoredObject(null, apo as AbstractCreature, index);
                             player.room.RemoveObject((apo as AbstractCreature).realizedCreature);
+                            apo.Room.entities.Remove(apo);
                         }
                         //Carried object is an item
                         else
