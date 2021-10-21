@@ -71,10 +71,10 @@ public class Inventory : HudPart
                             activeSlot.storedItem = InventoryData.NewStoredObject(null, apo as AbstractCreature, index);
                             player.room.RemoveObject((apo as AbstractCreature).realizedCreature);
                             apo.Room.entities.Remove(apo);
-                            if ((apo as AbstractCreature).world.GetSpawner((apo as AbstractCreature).ID) != null && (apo as AbstractCreature).world.GetSpawner((apo as AbstractCreature).ID) is World.Lineage)
-                            {
-                                ((apo as AbstractCreature).world.GetSpawner((apo as AbstractCreature).ID) as World.Lineage).ChanceToProgress((apo as AbstractCreature).world);
-                            }
+                            //if ((apo as AbstractCreature).world.GetSpawner((apo as AbstractCreature).ID) != null && (apo as AbstractCreature).world.GetSpawner((apo as AbstractCreature).ID) is World.Lineage)
+                            //{
+                            //    ((apo as AbstractCreature).world.GetSpawner((apo as AbstractCreature).ID) as World.Lineage).ChanceToProgress((apo as AbstractCreature).world);
+                            //}
                             (player.room.game.session as StoryGameSession).saveState.waitRespawnCreatures.Add((apo as AbstractCreature).ID.spawner);
                         }
                         //Carried object is an item
