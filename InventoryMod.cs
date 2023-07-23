@@ -48,7 +48,7 @@ public class InventoryMod : BaseUnityPlugin
 
                 //Setup Config
                 config = new InventoryConfig();
-                MachineConnector.SetRegisteredOI("inventory", config);
+                MachineConnector.SetRegisteredOI("leemoriya.inventory", config);
             }
         };
     }

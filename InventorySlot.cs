@@ -139,7 +139,7 @@ public class InventorySlot : HudPart
         sprites[CornerSprite(2)].y = vector.y + vector2.y - 3.5f;
         sprites[CornerSprite(3)].x = vector.x + vector2.x - 3.5f;
         sprites[CornerSprite(3)].y = vector.y + 3.5f;
-        Color color = InventoryConfig.customCursorColor;
+        Color color = InventoryConfig.cursorColorConfig.Value;
         if (InventoryConfig.rainbowBool.Value)
         {
             color = Custom.HSL2RGB(Mathf.Lerp(0f, 1f, Mathf.PingPong(Time.time * 0.7f, 1)), 0.85f, 0.65f);
