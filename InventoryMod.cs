@@ -10,10 +10,10 @@ using System.Security.Permissions;
 
 [assembly: SecurityPermission(SecurityAction.RequestMinimum, SkipVerification = true)]
 
-[BepInPlugin("LeeMoriya.Inventory", "Inventory", "1.0")]
+[BepInPlugin("LeeMoriya.Inventory", "Inventory", "1.01")]
 public class InventoryMod : BaseUnityPlugin
 {
-    public static string versionNumber = "v1.0";
+    public static string versionNumber = "v1.01";
     public static BaseUnityPlugin instance;
     public static Inventory inventory;
     public static bool init = false;

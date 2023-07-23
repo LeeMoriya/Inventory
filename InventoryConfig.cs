@@ -51,6 +51,8 @@ public class InventoryConfig : OptionInterface
     //Mod Info
     public OpLabel infoLabel;
 
+    public int resetCounter = 0;
+
     public InventoryConfig()
     {
         critBool = config.Bind<bool>("critBool", false, new ConfigurableInfo("Allows you to store any creature, living or dead that Slugcat can grab", null));
@@ -58,8 +60,8 @@ public class InventoryConfig : OptionInterface
         slowBool = config.Bind<bool>("slowBool", false, new ConfigurableInfo("Slows down time when the inventory is open", null));
         rainbowBool = config.Bind<bool>("rainbowBool", false, new ConfigurableInfo("Changes the color of the inventory cursor to a rainbow - this setting overrides custom cursor color", null));
         cursorColorConfig = config.Bind<Color>("cursorColorConfig", new Color(1f, 1f, 1f), new ConfigurableInfo("Set a custom color for the inventory cursor", null));
-        widthConfig = config.Bind<int>("invWidth", 30, new ConfigAcceptableRange<int>(1, 8));
-        heightConfig = config.Bind<int>("invHeight", 20, new ConfigAcceptableRange<int>(1, 4));
+        widthConfig = config.Bind<int>("invWidth", 3, new ConfigAcceptableRange<int>(1, 8));
+        heightConfig = config.Bind<int>("invHeight", 2, new ConfigAcceptableRange<int>(1, 4));
 
         invSize = new IntVector2(widthConfig.Value, heightConfig.Value);
     }
@@ -123,6 +125,16 @@ public class InventoryConfig : OptionInterface
         Tabs[0].AddItems(infoLabel);
 
         OnConfigChanged += InventoryConfig_OnConfigChanged;
+        OnConfigReset += InventoryConfig_OnConfigReset;
+    }
+
+    private void InventoryConfig_OnConfigReset()
+    {
+        for (int i = 0; i < previewSlots.Length; i++)
+        {
+            previewSlots[i].Hide();
+        }
+        resetCounter = 10;
     }
 
     private void HeightSlider_OnValueChanged(UIconfig config, string value, string oldValue)
@@ -150,25 +162,32 @@ public class InventoryConfig : OptionInterface
         int xPos = 0;
         int yPos = 0;
 
-        for (int i = 0; i < previewSlots.Length; i++)
+        if (resetCounter <= 0)
         {
-            if (i < totalSlots)
+            for (int i = 0; i < previewSlots.Length; i++)
             {
-                previewSlots[i].SetPos(new Vector2(xAnchor + (offset * xPos), yAnchor + (offset * yPos)));
-                previewSlots[i].Show();
-
-                xPos++;
-                if (xPos == invSize.x)
+                if (i < totalSlots)
                 {
-                    xPos = 0;
-                    yPos++;
+                    previewSlots[i].SetPos(new Vector2(xAnchor + (offset * xPos), yAnchor + (offset * yPos)));
+                    previewSlots[i].Show();
+
+                    xPos++;
+                    if (xPos == invSize.x)
+                    {
+                        xPos = 0;
+                        yPos++;
+                    }
+                }
+                else
+                {
+                    previewSlots[i].Hide();
+                    previewSlots[i].SetPos(new Vector2(300f, 20000f));
                 }
             }
-            else
-            {
-                previewSlots[i].Hide();
-                previewSlots[i].SetPos(new Vector2(300f, 20000f));
-            }
+        }
+        else
+        {
+            resetCounter--;
         }
 
         sizeLabel.text = "Width: " + invSize.x + " | Height: " + invSize.y;

@@ -29,7 +29,7 @@ public class InventorySave
 
     public static void WipeAll(int saveSlot)
     {
-        string path = Custom.RootFolderDirectory() + Path.DirectorySeparatorChar + "UserData" + Path.DirectorySeparatorChar + "Inventory";
+        string path = Application.persistentDataPath + Path.DirectorySeparatorChar + "Inventory";
         if (Directory.Exists(path))
         {
             string[] files = Directory.GetFiles(path);
@@ -44,7 +44,7 @@ public class InventorySave
     }
     public static void WipeSave(int saveSlot, SlugcatStats.Name slugcat)
     {
-        string path = Custom.RootFolderDirectory() + Path.DirectorySeparatorChar + "UserData" + Path.DirectorySeparatorChar + "Inventory";
+        string path = Application.persistentDataPath + Path.DirectorySeparatorChar + "Inventory";
         if (Directory.Exists(path))
         {
             string save = path + Path.DirectorySeparatorChar + "Inventory" + saveSlot.ToString() + slugcat.value.ToString() + ".txt";
@@ -57,9 +57,9 @@ public class InventorySave
 
     public static void Save(int saveSlot, SlugcatStats.Name slugcat)
     {
-        string path = Custom.RootFolderDirectory() + Path.DirectorySeparatorChar + "UserData" + Path.DirectorySeparatorChar + "Inventory";
+        string path = Application.persistentDataPath + Path.DirectorySeparatorChar + "Inventory";
         //Create Inventory save folder if it doesn't exist
-        if(!Directory.Exists(path))
+        if (!Directory.Exists(path))
         {
             Directory.CreateDirectory(path);
         }
@@ -78,7 +78,7 @@ public class InventorySave
 
     public static void Load(int saveSlot, SlugcatStats.Name slugcat)
     {
-        string path = Custom.RootFolderDirectory() + Path.DirectorySeparatorChar + "UserData" + Path.DirectorySeparatorChar + "Inventory";
+        string path = Application.persistentDataPath + Path.DirectorySeparatorChar + "Inventory";
         //Create Inventory save folder if it doesn't exist
         if (!Directory.Exists(path))
         {

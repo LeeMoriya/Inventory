@@ -188,6 +188,7 @@ public static class InventoryData
             if (apo != null)
             {
                 type = apo.type;
+                Debug.Log("SAVING OBJECT: " + apo.type);
                 data = apo.ToString();
                 ItemSymbol.IconSymbolData symbol;
                 try
@@ -233,10 +234,10 @@ public static class InventoryData
             return string.Concat(new string[]
             {
                     //0 Item Type
-                    type.value.ToString(),
+                    type.value,
                     "<X>",
                     //1 Creature Type
-                    critType.value.ToString(),
+                    critType != null ? critType.value : "NULL",
                     "<X>",
                     //2 Index of object in inventory
                     index.ToString(),
