@@ -64,7 +64,7 @@ public class Inventory : HudPart
                         //Carried object is a creature
                         if (apo.type == AbstractPhysicalObject.AbstractObjectType.Creature)
                         {
-                            if (!InventoryConfig.critBool.Value)
+                            if (!InventoryConfig.critBool.Value || (apo as AbstractCreature).creatureTemplate.type == CreatureTemplate.Type.Slugcat)
                             {
                                 hud.PlaySound(SoundID.MENU_Error_Ping);
                                 return;
