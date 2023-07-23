@@ -47,6 +47,7 @@ public static class InventoryData
             if (storedObjects[i].index == index)
             {
                 Debug.Log("New stored object created with index " + index);
+                Debug.Log("Stored item: " + apo.type.ToString());
                 return storedObjects[i];
             }
         }
@@ -123,10 +124,10 @@ public static class InventoryData
             Debug.Log(objData[i]);
         }
         //0 - type of item
-        SObj.type = (AbstractPhysicalObject.AbstractObjectType)int.Parse(objData[0]);
+        SObj.type =  new AbstractPhysicalObject.AbstractObjectType(objData[0], false);
         Debug.Log(SObj.type.ToString());
         //1 - type of creature
-        SObj.critType = (CreatureTemplate.Type)int.Parse(objData[1]);
+        SObj.critType = new CreatureTemplate.Type(objData[1]);
         //2 - index
         SObj.index = int.Parse(objData[2]);
         //3 - sprite name
@@ -186,58 +187,56 @@ public static class InventoryData
             //Stored object is an item
             if (apo != null)
             {
-                this.type = apo.type;
-                this.data = apo.ToString();
+                type = apo.type;
+                data = apo.ToString();
                 ItemSymbol.IconSymbolData symbol;
                 try
                 {
                     symbol = (ItemSymbol.IconSymbolData)ItemSymbol.SymbolDataFromItem(apo);
-                    this.spriteName = ItemSymbol.SpriteNameForItem(this.type, symbol.intData);
-                    this.spriteColor = ItemSymbol.ColorForItem(this.type, symbol.intData);
+                    spriteName = ItemSymbol.SpriteNameForItem(type, symbol.intData);
+                    spriteColor = ItemSymbol.ColorForItem(type, symbol.intData);
                 }
                 catch
                 {
-                    this.spriteName = "Futile_White";
-                    this.spriteColor = new Color(1f, 0f, 1f);
-                    if(this.type == AbstractPhysicalObject.AbstractObjectType.KarmaFlower)
+                    spriteName = "Futile_White";
+                    spriteColor = new Color(1f, 0f, 1f);
+                    if(type == AbstractPhysicalObject.AbstractObjectType.KarmaFlower)
                     {
-                        this.spriteName = "FlowerMarker";
-                        this.spriteColor = RainWorld.GoldRGB;
+                        spriteName = "FlowerMarker";
+                        spriteColor = RainWorld.GoldRGB;
                     }
                 }
             }
             //Stored object is a creature
             if (crit != null)
             {
-                this.type = crit.type;
-                this.critType = crit.creatureTemplate.type;
-                this.data = SaveState.AbstractCreatureToString(crit);
+                type = crit.type;
+                critType = crit.creatureTemplate.type;
+                data = SaveState.AbstractCreatureToStringStoryWorld(crit);
                 CreatureSymbol.IconSymbolData creature;
                 try
                 {
                     creature = CreatureSymbol.SymbolDataFromCreature(crit);
-                    this.spriteName = CreatureSymbol.SpriteNameOfCreature(creature);
-                    this.spriteColor = CreatureSymbol.ColorOfCreature(creature);
+                    spriteName = CreatureSymbol.SpriteNameOfCreature(creature);
+                    spriteColor = CreatureSymbol.ColorOfCreature(creature);
                 }
                 catch
                 {
-                    this.spriteName = "Futile_White";
-                    this.spriteColor = new Color(1f, 0f, 1f);
+                    spriteName = "Futile_White";
+                    spriteColor = new Color(1f, 0f, 1f);
                 }
             }
         }
 
         public string ToDataString()
         {
-            int type = (int)this.type;
-            int critType = (int)this.critType;
             return string.Concat(new string[]
             {
                     //0 Item Type
-                    type.ToString(),
+                    type.value.ToString(),
                     "<X>",
                     //1 Creature Type
-                    critType.ToString(),
+                    critType.value.ToString(),
                     "<X>",
                     //2 Index of object in inventory
                     index.ToString(),

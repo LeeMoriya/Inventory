@@ -51,8 +51,8 @@ public class Inventory : HudPart
         }
         if (activeSlot != null)
         {
-            Player player = this.hud.owner as Player;
-            //If this slot has no item...
+            Player player = hud.owner as Player;
+            //STORE ITEM
             if (activeSlot.storedItem == null)
             {
                 for (int i = 0; i < 2; i++)
@@ -63,9 +63,9 @@ public class Inventory : HudPart
                         //Carried object is a creature
                         if (apo.type == AbstractPhysicalObject.AbstractObjectType.Creature)
                         {
-                            if (!InventoryConfig.creatureStorage)
+                            if (!InventoryConfig.critBool.Value)
                             {
-                                this.hud.PlaySound(SoundID.MENU_Error_Ping);
+                                hud.PlaySound(SoundID.MENU_Error_Ping);
                                 return;
                             }
                             activeSlot.storedItem = InventoryData.NewStoredObject(null, apo as AbstractCreature, index);
@@ -80,9 +80,9 @@ public class Inventory : HudPart
                         //Carried object is an item
                         else
                         {
-                            if(apo.type == AbstractPhysicalObject.AbstractObjectType.KarmaFlower && !InventoryConfig.karmaStorage)
+                            if(apo.type == AbstractPhysicalObject.AbstractObjectType.KarmaFlower && !InventoryConfig.karmaBool.Value)
                             {
-                                this.hud.PlaySound(SoundID.MENU_Error_Ping);
+                                hud.PlaySound(SoundID.MENU_Error_Ping);
                                 return;
                             }
                             activeSlot.storedItem = InventoryData.NewStoredObject(apo, null, index);
@@ -97,8 +97,9 @@ public class Inventory : HudPart
                         break;
                     }
                 }
-                (this.hud.owner as Player).room.PlaySound(SoundID.Slugcat_Stash_Spear_On_Back, (this.hud.owner as Player).mainBodyChunk, false, 2f, 0.9f);
+                (hud.owner as Player).room.PlaySound(SoundID.Slugcat_Stash_Spear_On_Back, (hud.owner as Player).mainBodyChunk, false, 2f, 0.9f);
             }
+            //RETRIEVE ITEM
             else
             {
                 //Check for free grasps
@@ -112,7 +113,7 @@ public class Inventory : HudPart
                 }
                 if (freeGrasp == 0)
                 {
-                    this.hud.PlaySound(SoundID.MENU_Error_Ping);
+                    hud.PlaySound(SoundID.MENU_Error_Ping);
                     return;
                 }
                 AbstractPhysicalObject apo;
@@ -127,11 +128,14 @@ public class Inventory : HudPart
                 //Re-create item from string
                 else
                 {
+                    Debug.Log("RECREATE FROM SAVE STRING");
                     apo = SaveState.AbstractPhysicalObjectFromString(player.room.world, activeSlot.storedItem.data);
                 }
                 //Place the object in the room and make Slugcat grab it with a free hand
+                Debug.Log("ADD ENTITY");
                 player.room.abstractRoom.AddEntity(apo);
                 apo.pos = player.abstractCreature.pos;
+                Debug.Log("REALIZE OBJECT");
                 apo.RealizeInRoom();
                 if (apo.realizedObject != null)
                 {
@@ -150,18 +154,26 @@ public class Inventory : HudPart
                                     {
                                         if(player.grasps[s].grabbed is Spear)
                                         {
+                                            Debug.Log("HAS SPEAR");
                                             hasSpear = true;
                                         }
-                                        //Retrieving two-handed object = Empty current grasps
-                                        if (player.Grabability(apo.realizedObject) != Player.ObjectGrabability.OneHand && player.Grabability(apo.realizedObject) != Player.ObjectGrabability.BigOneHand)
-                                        {
-                                            player.grasps[s].Release();
-                                        }
-                                        //Player is holding two-handed object and retrieving something = Empty current grasps
-                                        else if(player.Grabability(player.grasps[s].grabbed) != Player.ObjectGrabability.OneHand && player.Grabability(player.grasps[s].grabbed) != Player.ObjectGrabability.BigOneHand)
-                                        {
-                                            player.grasps[s].Release();
-                                        }
+                                        //try
+                                        //{
+                                        //    //Retrieving two-handed object = Empty current grasps
+                                        //    if (player.Grabability(apo.realizedObject) != Player.ObjectGrabability.OneHand && player.Grabability(apo.realizedObject) != Player.ObjectGrabability.BigOneHand)
+                                        //    {
+                                        //        player.grasps[s].Release();
+                                        //    }
+                                        //    //Player is holding two-handed object and retrieving something = Empty current grasps
+                                        //    else if (player.Grabability(player.grasps[s].grabbed) != Player.ObjectGrabability.OneHand && player.Grabability(player.grasps[s].grabbed) != Player.ObjectGrabability.BigOneHand)
+                                        //    {
+                                        //        player.grasps[s].Release();
+                                        //    }
+                                        //}
+                                        //catch(Exception e)
+                                        //{
+                                        //    Debug.LogException(e);
+                                        //}
                                     }
                                 }
                                 if(hasSpear && apo.type == AbstractPhysicalObject.AbstractObjectType.Spear && player.spearOnBack != null && !player.spearOnBack.HasASpear)
@@ -170,6 +182,7 @@ public class Inventory : HudPart
                                 }
                                 else
                                 {
+                                    Debug.Log("SLUGCAT GRAB");
                                     player.SlugcatGrab(apo.realizedObject, i);
                                 }
                             }
@@ -177,7 +190,7 @@ public class Inventory : HudPart
                     }
                 }
                 //Empty slot after retrieving item
-                this.hud.PlaySound(SoundID.Slugcat_Stash_Spear_On_Back);
+                hud.PlaySound(SoundID.Slugcat_Stash_Spear_On_Back);
                 InventoryData.RemoveStoredObject(activeSlot.storedItem.index);
                 activeSlot.storedItem = null;
             }
@@ -190,20 +203,20 @@ public class GridInventory : Inventory
     public GridInventory(HUD.HUD hud) : base(hud)
     {
         this.hud = hud;
-        this.pos = hud.owner.MapOwnerInRoomPosition;
+        pos = hud.owner.MapOwnerInRoomPosition;
         //Generate inventory slots based on the invSize IntVector
         List<InventorySlot> slots = new List<InventorySlot>();
         for (int x = 0; x < invSize.x; x++)
         {
             for (int y = 0; y < invSize.y; y++)
             {
-                slots.Add(new InventorySlot(this, this.hud, new IntVector2(x, y)));
+                slots.Add(new InventorySlot(this, hud, new IntVector2(x, y)));
             }
         }
-        this.inventorySlots = slots.ToArray();
+        inventorySlots = slots.ToArray();
         for (int i = 0; i < inventorySlots.Length; i++)
         {
-            this.hud.AddPart(inventorySlots[i]);
+            hud.AddPart(inventorySlots[i]);
             if (InventoryData.storedObjects != null)
             {
                 for (int o = 0; o < InventoryData.storedObjects.Count; o++)
@@ -215,29 +228,29 @@ public class GridInventory : Inventory
                 }
             }
         }
-        //this.hud.AddPart(new CapacityGauge(this, this.hud));
+        //hud.AddPart(new CapacityGauge(this, hud));
     }
 
     public override void Update()
     {
         base.Update();
-        Player player = (this.hud.owner as Player);
+        Player player = (hud.owner as Player);
         if (player != null && player.room != null)
         {
             //Holding Map
             if (player.mapInput.mp && !showMap)
             {
-                this.isShown = true;
+                isShown = true;
             }
             else
             {
-                this.isShown = false;
+                isShown = false;
             }
             //Release Map
             if (!player.mapInput.mp)
             {
-                //this.showMap = false;
-                this.isShown = false;
+                //showMap = false;
+                isShown = false;
             }
             //Position
             if (isShown)
@@ -245,31 +258,31 @@ public class GridInventory : Inventory
                 Vector2 camPos = player.room.game.cameras[0].pos;
                 Vector2 playerPos = player.mainBodyChunk.pos;
                 //Default position
-                this.pos.x = playerPos.x - camPos.x;
-                this.pos.y = playerPos.y - camPos.y;
-                this.pos.x -= (this.slotOffset * (this.invSize.x * 0.5f)) - this.slotSize * 0.5f;
-                this.pos.y += 65f;
-                this.pos.x += 5f;
+                pos.x = playerPos.x - camPos.x;
+                pos.y = playerPos.y - camPos.y;
+                pos.x -= (slotOffset * (invSize.x * 0.5f)) - slotSize * 0.5f;
+                pos.y += 65f;
+                pos.x += 5f;
                 //Clamped position
-                this.pos.y = Mathf.Clamp(this.pos.y, (this.slotOffset - this.slotSize) * 3, 800f - (this.slotOffset * this.invSize.y));
-                this.pos.x = Mathf.Clamp(this.pos.x, (this.slotOffset - this.slotSize) * 3, 1400f - (this.slotOffset * this.invSize.x));
+                pos.y = Mathf.Clamp(pos.y, (slotOffset - slotSize) * 3, 800f - (slotOffset * invSize.y));
+                pos.x = Mathf.Clamp(pos.x, (slotOffset - slotSize) * 3, 1400f - (slotOffset * invSize.x));
 
-                this.pos.x = Mathf.RoundToInt(this.pos.x);
-                this.pos.y = Mathf.RoundToInt(this.pos.y);
+                pos.x = Mathf.RoundToInt(pos.x);
+                pos.y = Mathf.RoundToInt(pos.y);
                 for (int i = 0; i < inventorySlots.Length; i++)
                 {
-                    inventorySlots[i].pos = inventorySlots[i].SlotPos(this.pos);
+                    inventorySlots[i].pos = inventorySlots[i].SlotPos(pos);
                 }
-                if (this.fade < 1f)
+                if (fade < 1f)
                 {
-                    this.fade += 10f * Time.deltaTime;
+                    fade += 10f * Time.deltaTime;
                 }
             }
             else
             {
-                if (this.fade > 0f)
+                if (fade > 0f)
                 {
-                    this.fade -= 10f * Time.deltaTime;
+                    fade -= 10f * Time.deltaTime;
                 }
             }
             //Tick down input delay
@@ -289,14 +302,14 @@ public class GridInventory : Inventory
                     else
                     {
                         showMap = true;
-                        this.hud.PlaySound(SoundID.Slugcat_Ghost_Appear);
+                        hud.PlaySound(SoundID.Slugcat_Ghost_Appear);
                     }
                     inputDelay = 12;
                 }
                 //Player cannot manage inventory unless it has fully appeared on-screen.
                 //This prevents the player accidently triggering an action the moment they open the menu.
                 //This doesn't apply to opening the map however.
-                if (showMap || this.fade < 0.5f)
+                if (showMap || fade < 0.5f)
                 {
                     return;
                 }
@@ -318,7 +331,7 @@ public class GridInventory : Inventory
                         cursorPos.x--;
                     }
                     inputDelay = 18;
-                    this.hud.PlaySound(SoundID.MENU_Button_Standard_Button_Pressed);
+                    hud.PlaySound(SoundID.MENU_Button_Standard_Button_Pressed);
                 }
                 //Right
                 if ((player.mapInput.x > 0f && invInput.x == 0f) || (player.mapInput.x > 0f && inputDelay <= 0))
@@ -332,7 +345,7 @@ public class GridInventory : Inventory
                         cursorPos.x++;
                     }
                     inputDelay = 18;
-                    this.hud.PlaySound(SoundID.MENU_Button_Standard_Button_Pressed);
+                    hud.PlaySound(SoundID.MENU_Button_Standard_Button_Pressed);
                 }
                 //Up
                 if ((player.mapInput.y > 0f && invInput.y == 0f) || (player.mapInput.y > 0f && inputDelay <= 0))
@@ -346,7 +359,7 @@ public class GridInventory : Inventory
                         cursorPos.y++;
                     }
                     inputDelay = 18;
-                    this.hud.PlaySound(SoundID.MENU_Button_Standard_Button_Pressed);
+                    hud.PlaySound(SoundID.MENU_Button_Standard_Button_Pressed);
                 }
                 //Down
                 if ((player.mapInput.y < 0f && invInput.y == 0f) || (player.mapInput.y < 0f && inputDelay <= 0))
@@ -360,22 +373,22 @@ public class GridInventory : Inventory
                         cursorPos.y--;
                     }
                     inputDelay = 18;
-                    this.hud.PlaySound(SoundID.MENU_Button_Standard_Button_Pressed);
+                    hud.PlaySound(SoundID.MENU_Button_Standard_Button_Pressed);
                 }
             }
         }
-        for (int i = 0; i < this.inventorySlots.Length; i++)
+        for (int i = 0; i < inventorySlots.Length; i++)
         {
-            if (this.cursorPos == this.inventorySlots[i].slotNum)
+            if (cursorPos == inventorySlots[i].slotNum)
             {
-                this.inventorySlots[i].isSelected = true;
+                inventorySlots[i].isSelected = true;
             }
             else
             {
-                this.inventorySlots[i].isSelected = false;
+                inventorySlots[i].isSelected = false;
             }
         }
-        this.invInput = player.mapInput;
+        invInput = player.mapInput;
     }
 }
 
@@ -384,13 +397,13 @@ public class RadialInventory : Inventory
     public RadialInventory(HUD.HUD hud) : base(hud)
     {
         this.hud = hud;
-        this.pos = hud.owner.MapOwnerInRoomPosition;
+        pos = hud.owner.MapOwnerInRoomPosition;
         //Generate inventory slots based on the invSize IntVector
-        this.inventorySlots = new InventorySlot[invSlots];
+        inventorySlots = new InventorySlot[invSlots];
         for (int i = 0; i < inventorySlots.Length; i++)
         {
-            inventorySlots[i] = new InventorySlot(this, this.hud, new IntVector2(i, 0));
-            this.hud.AddPart(inventorySlots[i]);
+            inventorySlots[i] = new InventorySlot(this, hud, new IntVector2(i, 0));
+            hud.AddPart(inventorySlots[i]);
             //Load stored objects by index
             if (InventoryData.storedObjects != null)
             {
@@ -404,7 +417,7 @@ public class RadialInventory : Inventory
 
     public Vector2 RadialPos(int index)
     {
-        int pos = 0;
+        int pos;
         float offset = 0f;
         if(index < selectedSlot)
         {
@@ -422,29 +435,29 @@ public class RadialInventory : Inventory
     public override void Update()
     {
         base.Update();
-        Player player = (this.hud.owner as Player);
+        Player player = (hud.owner as Player);
         if (player != null && player.room != null)
         {
             if (player.mapInput.mp && !showMap)
             {
-                this.isShown = true;
+                isShown = true;
             }
             else
             {
-                this.isShown = false;
+                isShown = false;
             }
             if (!player.mapInput.mp)
             {
-                this.showMap = false;
-                this.isShown = false;
+                showMap = false;
+                isShown = false;
             }
             //Position
             if (isShown)
             {
-                this.pos.x = player.mainBodyChunk.pos.x - player.room.game.cameras[0].pos.x;
-                this.pos.y = player.mainBodyChunk.pos.y - player.room.game.cameras[0].pos.y + 50f;
-                this.pos.x = Mathf.RoundToInt(this.pos.x);
-                this.pos.y = Mathf.RoundToInt(this.pos.y);
+                pos.x = player.mainBodyChunk.pos.x - player.room.game.cameras[0].pos.x;
+                pos.y = player.mainBodyChunk.pos.y - player.room.game.cameras[0].pos.y + 50f;
+                pos.x = Mathf.RoundToInt(pos.x);
+                pos.y = Mathf.RoundToInt(pos.y);
 
                 //Slot positions
                 for (int i = 0; i < inventorySlots.Length; i++)
@@ -452,16 +465,16 @@ public class RadialInventory : Inventory
                     inventorySlots[i].pos = RadialPos(i);
                 }
 
-                if (this.fade < 1f)
+                if (fade < 1f)
                 {
-                    this.fade += 10f * Time.deltaTime;
+                    fade += 10f * Time.deltaTime;
                 }
             }
             else
             {
-                if (this.fade > 0f)
+                if (fade > 0f)
                 {
-                    this.fade -= 10f * Time.deltaTime;
+                    fade -= 10f * Time.deltaTime;
                 }
             }
             //Tick down input delay
@@ -481,7 +494,7 @@ public class RadialInventory : Inventory
                     else
                     {
                         showMap = true;
-                        this.hud.PlaySound(SoundID.Slugcat_Ghost_Appear);
+                        hud.PlaySound(SoundID.Slugcat_Ghost_Appear);
                     }
                     inputDelay = 12;
                 }
@@ -505,7 +518,7 @@ public class RadialInventory : Inventory
                         }
                     }
                     inputDelay = 18;
-                    this.hud.PlaySound(SoundID.MENU_Button_Standard_Button_Pressed);
+                    hud.PlaySound(SoundID.MENU_Button_Standard_Button_Pressed);
                     Debug.Log("Slot: " + selectedSlot);
                 }
                 //Right
@@ -528,13 +541,13 @@ public class RadialInventory : Inventory
                         }
                     }
                     inputDelay = 18;
-                    this.hud.PlaySound(SoundID.MENU_Button_Standard_Button_Pressed);
+                    hud.PlaySound(SoundID.MENU_Button_Standard_Button_Pressed);
                     Debug.Log("Slot: " + selectedSlot);
                 }
                 //Player cannot manage inventory unless it has fully appeared on-screen.
                 //This prevents the player accidently triggering an action the moment they open the menu.
                 //This doesn't apply to opening the map however.
-                if (showMap || this.fade < 0.5f)
+                if (showMap || fade < 0.5f)
                 {
                     return;
                 }

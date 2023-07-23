@@ -28,77 +28,77 @@ public class InventorySlot : HudPart
     public override void Update()
     {
         base.Update();
-        if (this.isSelected)
+        if (isSelected)
         {
-            this.fade = 1f;
+            fade = 1f;
         }
         else
         {
-            if (InventoryConfig.slowMenu)
+            if (InventoryConfig.slowBool.Value)
             {
-                this.fade -= 20f * Time.deltaTime;
+                fade -= 20f * Time.deltaTime;
             }
             else
             {
-                this.fade -= 8f * Time.deltaTime;
+                fade -= 8f * Time.deltaTime;
             }
         }
     }
 
     public Vector2 SlotPos(Vector2 pos)
     {
-        float offset = this.inventory.slotOffset;
-        Vector2 slotPos = new Vector2(pos.x + (offset * this.slotNum.x), pos.y + (offset * this.slotNum.y));
-        Vector2 invCenter = new Vector2(pos.x + (inventory.slotSize * inventory.invSize.x / 2) - (this.inventory.slotOffset - this.inventory.slotSize), pos.y);
+        float offset = inventory.slotOffset;
+        Vector2 slotPos = new Vector2(pos.x + (offset * slotNum.x), pos.y + (offset * slotNum.y));
+        Vector2 invCenter = new Vector2(pos.x + (inventory.slotSize * inventory.invSize.x / 2) - (inventory.slotOffset - inventory.slotSize), pos.y);
         Vector2 zoomPos = Vector2.Lerp(invCenter, slotPos, inventory.fade);
         return zoomPos;
     }
 
     public void InitiateSprites()
     {
-        this.sprites = new FSprite[17];
+        sprites = new FSprite[17];
         for (int i = 0; i < 4; i++)
         {
-            this.sprites[this.SideSprite(i)] = new FSprite("pixel", true);
-            this.sprites[this.SideSprite(i)].scaleY = 2f;
-            this.sprites[this.SideSprite(i)].scaleX = 2f;
-            this.sprites[this.CornerSprite(i)] = new FSprite("UIroundedCorner", true);
-            this.sprites[this.FillSideSprite(i)] = new FSprite("pixel", true);
-            this.sprites[this.FillSideSprite(i)].scaleY = 6f;
-            this.sprites[this.FillSideSprite(i)].scaleX = 6f;
-            this.sprites[this.FillCornerSprite(i)] = new FSprite("UIroundedCornerInside", true);
+            sprites[SideSprite(i)] = new FSprite("pixel", true);
+            sprites[SideSprite(i)].scaleY = 2f;
+            sprites[SideSprite(i)].scaleX = 2f;
+            sprites[CornerSprite(i)] = new FSprite("UIroundedCorner", true);
+            sprites[FillSideSprite(i)] = new FSprite("pixel", true);
+            sprites[FillSideSprite(i)].scaleY = 6f;
+            sprites[FillSideSprite(i)].scaleX = 6f;
+            sprites[FillCornerSprite(i)] = new FSprite("UIroundedCornerInside", true);
         }
-        this.sprites[this.SideSprite(0)].anchorY = 0f;
-        this.sprites[this.SideSprite(2)].anchorY = 0f;
-        this.sprites[this.SideSprite(1)].anchorX = 0f;
-        this.sprites[this.SideSprite(3)].anchorX = 0f;
-        this.sprites[this.CornerSprite(0)].scaleY = -1f;
-        this.sprites[this.CornerSprite(2)].scaleX = -1f;
-        this.sprites[this.CornerSprite(3)].scaleY = -1f;
-        this.sprites[this.CornerSprite(3)].scaleX = -1f;
-        this.sprites[this.MainFillSprite] = new FSprite("pixel", true);
-        this.sprites[this.MainFillSprite].anchorY = 0f;
-        this.sprites[this.MainFillSprite].anchorX = 0f;
-        this.sprites[this.FillSideSprite(0)].anchorY = 0f;
-        this.sprites[this.FillSideSprite(2)].anchorY = 0f;
-        this.sprites[this.FillSideSprite(1)].anchorX = 0f;
-        this.sprites[this.FillSideSprite(3)].anchorX = 0f;
-        this.sprites[this.FillCornerSprite(0)].scaleY = -1f;
-        this.sprites[this.FillCornerSprite(2)].scaleX = -1f;
-        this.sprites[this.FillCornerSprite(3)].scaleY = -1f;
-        this.sprites[this.FillCornerSprite(3)].scaleX = -1f;
+        sprites[SideSprite(0)].anchorY = 0f;
+        sprites[SideSprite(2)].anchorY = 0f;
+        sprites[SideSprite(1)].anchorX = 0f;
+        sprites[SideSprite(3)].anchorX = 0f;
+        sprites[CornerSprite(0)].scaleY = -1f;
+        sprites[CornerSprite(2)].scaleX = -1f;
+        sprites[CornerSprite(3)].scaleY = -1f;
+        sprites[CornerSprite(3)].scaleX = -1f;
+        sprites[MainFillSprite] = new FSprite("pixel", true);
+        sprites[MainFillSprite].anchorY = 0f;
+        sprites[MainFillSprite].anchorX = 0f;
+        sprites[FillSideSprite(0)].anchorY = 0f;
+        sprites[FillSideSprite(2)].anchorY = 0f;
+        sprites[FillSideSprite(1)].anchorX = 0f;
+        sprites[FillSideSprite(3)].anchorX = 0f;
+        sprites[FillCornerSprite(0)].scaleY = -1f;
+        sprites[FillCornerSprite(2)].scaleX = -1f;
+        sprites[FillCornerSprite(3)].scaleY = -1f;
+        sprites[FillCornerSprite(3)].scaleX = -1f;
         for (int j = 0; j < 9; j++)
         {
-            this.sprites[j].color = new Color(0f, 0f, 0f);
-            this.sprites[j].alpha = 0.35f;
+            sprites[j].color = new Color(0f, 0f, 0f);
+            sprites[j].alpha = 0.35f;
         }
-        this.itemSprite = new FSprite("Futile_White", true);
-        this.itemSprite.color = new Color(0f, 1f, 0f);
-        for (int k = 0; k < this.sprites.Length; k++)
+        itemSprite = new FSprite("Futile_White", true);
+        itemSprite.color = new Color(0f, 1f, 0f);
+        for (int k = 0; k < sprites.Length; k++)
         {
-            this.hud.fContainers[1].AddChild(this.sprites[k]);
+            hud.fContainers[1].AddChild(sprites[k]);
         }
-        this.hud.fContainers[1].AddChild(this.itemSprite);
+        hud.fContainers[1].AddChild(itemSprite);
     }
 
     public override void Draw(float timeStacker)
@@ -113,187 +113,187 @@ public class InventorySlot : HudPart
                 itemSprite.color = storedItem.spriteColor;
             }
         }
-        Vector2 vector = this.DrawPos(timeStacker);
-        Vector2 vector2 = new Vector2(this.inventory.slotSize, this.inventory.slotSize);
+        Vector2 vector = DrawPos(timeStacker);
+        Vector2 vector2 = new Vector2(inventory.slotSize, inventory.slotSize);
         vector.x -= 0.33333334f;
         vector.y -= 0.33333334f;
         vector.x -= vector2.x / 2f;
         vector.y -= vector2.y / 2f;
-        this.sprites[this.SideSprite(0)].x = vector.x + 1f;
-        this.sprites[this.SideSprite(0)].y = vector.y + 6f;
-        this.sprites[this.SideSprite(0)].scaleY = vector2.y - 12f;
-        this.sprites[this.SideSprite(1)].x = vector.x + 6f;
-        this.sprites[this.SideSprite(1)].y = vector.y + vector2.y - 1f;
-        this.sprites[this.SideSprite(1)].scaleX = vector2.x - 12f;
-        this.sprites[this.SideSprite(2)].x = vector.x + vector2.x - 1f;
-        this.sprites[this.SideSprite(2)].y = vector.y + 6f;
-        this.sprites[this.SideSprite(2)].scaleY = vector2.y - 12f;
-        this.sprites[this.SideSprite(3)].x = vector.x + 6f;
-        this.sprites[this.SideSprite(3)].y = vector.y + 1f;
-        this.sprites[this.SideSprite(3)].scaleX = vector2.x - 12f;
-        this.sprites[this.CornerSprite(0)].x = vector.x + 3.5f;
-        this.sprites[this.CornerSprite(0)].y = vector.y + 3.5f;
-        this.sprites[this.CornerSprite(1)].x = vector.x + 3.5f;
-        this.sprites[this.CornerSprite(1)].y = vector.y + vector2.y - 3.5f;
-        this.sprites[this.CornerSprite(2)].x = vector.x + vector2.x - 3.5f;
-        this.sprites[this.CornerSprite(2)].y = vector.y + vector2.y - 3.5f;
-        this.sprites[this.CornerSprite(3)].x = vector.x + vector2.x - 3.5f;
-        this.sprites[this.CornerSprite(3)].y = vector.y + 3.5f;
+        sprites[SideSprite(0)].x = vector.x + 1f;
+        sprites[SideSprite(0)].y = vector.y + 6f;
+        sprites[SideSprite(0)].scaleY = vector2.y - 12f;
+        sprites[SideSprite(1)].x = vector.x + 6f;
+        sprites[SideSprite(1)].y = vector.y + vector2.y - 1f;
+        sprites[SideSprite(1)].scaleX = vector2.x - 12f;
+        sprites[SideSprite(2)].x = vector.x + vector2.x - 1f;
+        sprites[SideSprite(2)].y = vector.y + 6f;
+        sprites[SideSprite(2)].scaleY = vector2.y - 12f;
+        sprites[SideSprite(3)].x = vector.x + 6f;
+        sprites[SideSprite(3)].y = vector.y + 1f;
+        sprites[SideSprite(3)].scaleX = vector2.x - 12f;
+        sprites[CornerSprite(0)].x = vector.x + 3.5f;
+        sprites[CornerSprite(0)].y = vector.y + 3.5f;
+        sprites[CornerSprite(1)].x = vector.x + 3.5f;
+        sprites[CornerSprite(1)].y = vector.y + vector2.y - 3.5f;
+        sprites[CornerSprite(2)].x = vector.x + vector2.x - 3.5f;
+        sprites[CornerSprite(2)].y = vector.y + vector2.y - 3.5f;
+        sprites[CornerSprite(3)].x = vector.x + vector2.x - 3.5f;
+        sprites[CornerSprite(3)].y = vector.y + 3.5f;
         Color color = InventoryConfig.customCursorColor;
-        if (InventoryConfig.rainbowCursor)
+        if (InventoryConfig.rainbowBool.Value)
         {
             color = Custom.HSL2RGB(Mathf.Lerp(0f, 1f, Mathf.PingPong(Time.time * 0.7f, 1)), 0.85f, 0.65f);
         }
         for (int j = 0; j < 4; j++)
         {
-            this.sprites[this.SideSprite(j)].color = color;
-            this.sprites[this.CornerSprite(j)].color = color;
+            sprites[SideSprite(j)].color = color;
+            sprites[CornerSprite(j)].color = color;
         }
-        this.sprites[this.FillSideSprite(0)].x = vector.x + 4f;
-        this.sprites[this.FillSideSprite(0)].y = vector.y + 7f;
-        this.sprites[this.FillSideSprite(0)].scaleY = vector2.y - 14f;
-        this.sprites[this.FillSideSprite(1)].x = vector.x + 7f;
-        this.sprites[this.FillSideSprite(1)].y = vector.y + vector2.y - 4f;
-        this.sprites[this.FillSideSprite(1)].scaleX = vector2.x - 14f;
-        this.sprites[this.FillSideSprite(2)].x = vector.x + vector2.x - 4f;
-        this.sprites[this.FillSideSprite(2)].y = vector.y + 7f;
-        this.sprites[this.FillSideSprite(2)].scaleY = vector2.y - 14f;
-        this.sprites[this.FillSideSprite(3)].x = vector.x + 7f;
-        this.sprites[this.FillSideSprite(3)].y = vector.y + 4f;
-        this.sprites[this.FillSideSprite(3)].scaleX = vector2.x - 14f;
-        this.sprites[this.FillCornerSprite(0)].x = vector.x + 3.5f;
-        this.sprites[this.FillCornerSprite(0)].y = vector.y + 3.5f;
-        this.sprites[this.FillCornerSprite(1)].x = vector.x + 3.5f;
-        this.sprites[this.FillCornerSprite(1)].y = vector.y + vector2.y - 3.5f;
-        this.sprites[this.FillCornerSprite(2)].x = vector.x + vector2.x - 3.5f;
-        this.sprites[this.FillCornerSprite(2)].y = vector.y + vector2.y - 3.5f;
-        this.sprites[this.FillCornerSprite(3)].x = vector.x + vector2.x - 3.5f;
-        this.sprites[this.FillCornerSprite(3)].y = vector.y + 3.5f;
-        this.sprites[this.MainFillSprite].x = vector.x + 7f;
-        this.sprites[this.MainFillSprite].y = vector.y + 7f;
-        this.sprites[this.MainFillSprite].scaleX = vector2.x - 14f;
-        this.sprites[this.MainFillSprite].scaleY = vector2.y - 14f;
-        this.itemSprite.x = vector.x + inventory.slotSize / 2;
-        this.itemSprite.y = vector.y + inventory.slotSize / 2;
+        sprites[FillSideSprite(0)].x = vector.x + 4f;
+        sprites[FillSideSprite(0)].y = vector.y + 7f;
+        sprites[FillSideSprite(0)].scaleY = vector2.y - 14f;
+        sprites[FillSideSprite(1)].x = vector.x + 7f;
+        sprites[FillSideSprite(1)].y = vector.y + vector2.y - 4f;
+        sprites[FillSideSprite(1)].scaleX = vector2.x - 14f;
+        sprites[FillSideSprite(2)].x = vector.x + vector2.x - 4f;
+        sprites[FillSideSprite(2)].y = vector.y + 7f;
+        sprites[FillSideSprite(2)].scaleY = vector2.y - 14f;
+        sprites[FillSideSprite(3)].x = vector.x + 7f;
+        sprites[FillSideSprite(3)].y = vector.y + 4f;
+        sprites[FillSideSprite(3)].scaleX = vector2.x - 14f;
+        sprites[FillCornerSprite(0)].x = vector.x + 3.5f;
+        sprites[FillCornerSprite(0)].y = vector.y + 3.5f;
+        sprites[FillCornerSprite(1)].x = vector.x + 3.5f;
+        sprites[FillCornerSprite(1)].y = vector.y + vector2.y - 3.5f;
+        sprites[FillCornerSprite(2)].x = vector.x + vector2.x - 3.5f;
+        sprites[FillCornerSprite(2)].y = vector.y + vector2.y - 3.5f;
+        sprites[FillCornerSprite(3)].x = vector.x + vector2.x - 3.5f;
+        sprites[FillCornerSprite(3)].y = vector.y + 3.5f;
+        sprites[MainFillSprite].x = vector.x + 7f;
+        sprites[MainFillSprite].y = vector.y + 7f;
+        sprites[MainFillSprite].scaleX = vector2.x - 14f;
+        sprites[MainFillSprite].scaleY = vector2.y - 14f;
+        itemSprite.x = vector.x + inventory.slotSize / 2;
+        itemSprite.y = vector.y + inventory.slotSize / 2;
         //Fading
         if (inventory.isShown)
         {
             if (inventory.fade > 0.4f)
             {
                 //Edge sprites
-                if(this.storedItem != null && !this.isSelected)
+                if(storedItem != null && !isSelected)
                 {
-                    this.sprites[this.SideSprite(0)].alpha = 0.4f;
-                    this.sprites[this.SideSprite(2)].alpha = 0.4f;
-                    this.sprites[this.SideSprite(1)].alpha = 0.4f;
-                    this.sprites[this.SideSprite(3)].alpha = 0.4f;
-                    this.sprites[this.CornerSprite(0)].alpha = 0.4f;
-                    this.sprites[this.CornerSprite(2)].alpha = 0.4f;
-                    this.sprites[this.CornerSprite(1)].alpha = 0.4f;
-                    this.sprites[this.CornerSprite(3)].alpha = 0.4f;
+                    sprites[SideSprite(0)].alpha = 0.4f;
+                    sprites[SideSprite(2)].alpha = 0.4f;
+                    sprites[SideSprite(1)].alpha = 0.4f;
+                    sprites[SideSprite(3)].alpha = 0.4f;
+                    sprites[CornerSprite(0)].alpha = 0.4f;
+                    sprites[CornerSprite(2)].alpha = 0.4f;
+                    sprites[CornerSprite(1)].alpha = 0.4f;
+                    sprites[CornerSprite(3)].alpha = 0.4f;
                 }
                 else
                 {
-                    this.sprites[this.SideSprite(0)].alpha = this.fade;
-                    this.sprites[this.SideSprite(2)].alpha = this.fade;
-                    this.sprites[this.SideSprite(1)].alpha = this.fade;
-                    this.sprites[this.SideSprite(3)].alpha = this.fade;
-                    this.sprites[this.CornerSprite(0)].alpha = this.fade;
-                    this.sprites[this.CornerSprite(2)].alpha = this.fade;
-                    this.sprites[this.CornerSprite(1)].alpha = this.fade;
-                    this.sprites[this.CornerSprite(3)].alpha = this.fade;
+                    sprites[SideSprite(0)].alpha = fade;
+                    sprites[SideSprite(2)].alpha = fade;
+                    sprites[SideSprite(1)].alpha = fade;
+                    sprites[SideSprite(3)].alpha = fade;
+                    sprites[CornerSprite(0)].alpha = fade;
+                    sprites[CornerSprite(2)].alpha = fade;
+                    sprites[CornerSprite(1)].alpha = fade;
+                    sprites[CornerSprite(3)].alpha = fade;
                 }
-                if (this.storedItem != null)
+                if (storedItem != null)
                 {
-                    if (this.isSelected && InventoryConfig.rainbowCursor)
+                    if (isSelected && InventoryConfig.rainbowBool.Value)
                     {
-                        this.sprites[this.SideSprite(0)].color = color;
-                        this.sprites[this.SideSprite(2)].color = color;
-                        this.sprites[this.SideSprite(1)].color = color;
-                        this.sprites[this.SideSprite(3)].color = color;
-                        this.sprites[this.CornerSprite(0)].color = color;
-                        this.sprites[this.CornerSprite(2)].color = color;
-                        this.sprites[this.CornerSprite(1)].color = color;
-                        this.sprites[this.CornerSprite(3)].color = color;
+                        sprites[SideSprite(0)].color = color;
+                        sprites[SideSprite(2)].color = color;
+                        sprites[SideSprite(1)].color = color;
+                        sprites[SideSprite(3)].color = color;
+                        sprites[CornerSprite(0)].color = color;
+                        sprites[CornerSprite(2)].color = color;
+                        sprites[CornerSprite(1)].color = color;
+                        sprites[CornerSprite(3)].color = color;
                     }
                     else
                     {
-                        this.sprites[this.SideSprite(0)].color = Color.Lerp(new Color(0f, 0f, 0f), this.storedItem.spriteColor, 0.8f);
-                        this.sprites[this.SideSprite(2)].color = Color.Lerp(new Color(0f, 0f, 0f), this.storedItem.spriteColor, 0.8f);
-                        this.sprites[this.SideSprite(1)].color = Color.Lerp(new Color(0f, 0f, 0f), this.storedItem.spriteColor, 0.8f);
-                        this.sprites[this.SideSprite(3)].color = Color.Lerp(new Color(0f, 0f, 0f), this.storedItem.spriteColor, 0.8f);
-                        this.sprites[this.CornerSprite(0)].color = Color.Lerp(new Color(0f, 0f, 0f), this.storedItem.spriteColor, 0.8f);
-                        this.sprites[this.CornerSprite(2)].color = Color.Lerp(new Color(0f, 0f, 0f), this.storedItem.spriteColor, 0.8f);
-                        this.sprites[this.CornerSprite(1)].color = Color.Lerp(new Color(0f, 0f, 0f), this.storedItem.spriteColor, 0.8f);
-                        this.sprites[this.CornerSprite(3)].color = Color.Lerp(new Color(0f, 0f, 0f), this.storedItem.spriteColor, 0.8f);
+                        sprites[SideSprite(0)].color = Color.Lerp(new Color(0f, 0f, 0f), storedItem.spriteColor, 0.8f);
+                        sprites[SideSprite(2)].color = Color.Lerp(new Color(0f, 0f, 0f), storedItem.spriteColor, 0.8f);
+                        sprites[SideSprite(1)].color = Color.Lerp(new Color(0f, 0f, 0f), storedItem.spriteColor, 0.8f);
+                        sprites[SideSprite(3)].color = Color.Lerp(new Color(0f, 0f, 0f), storedItem.spriteColor, 0.8f);
+                        sprites[CornerSprite(0)].color = Color.Lerp(new Color(0f, 0f, 0f), storedItem.spriteColor, 0.8f);
+                        sprites[CornerSprite(2)].color = Color.Lerp(new Color(0f, 0f, 0f), storedItem.spriteColor, 0.8f);
+                        sprites[CornerSprite(1)].color = Color.Lerp(new Color(0f, 0f, 0f), storedItem.spriteColor, 0.8f);
+                        sprites[CornerSprite(3)].color = Color.Lerp(new Color(0f, 0f, 0f), storedItem.spriteColor, 0.8f);
                     }
                 }
                 else
                 {
-                    this.sprites[this.SideSprite(0)].color = color;
-                    this.sprites[this.SideSprite(2)].color = color;
-                    this.sprites[this.SideSprite(1)].color = color;
-                    this.sprites[this.SideSprite(3)].color = color;
-                    this.sprites[this.CornerSprite(0)].color = color;
-                    this.sprites[this.CornerSprite(2)].color = color;
-                    this.sprites[this.CornerSprite(1)].color = color;
-                    this.sprites[this.CornerSprite(3)].color = color;
+                    sprites[SideSprite(0)].color = color;
+                    sprites[SideSprite(2)].color = color;
+                    sprites[SideSprite(1)].color = color;
+                    sprites[SideSprite(3)].color = color;
+                    sprites[CornerSprite(0)].color = color;
+                    sprites[CornerSprite(2)].color = color;
+                    sprites[CornerSprite(1)].color = color;
+                    sprites[CornerSprite(3)].color = color;
                 }
                 //Fill sprites
                 for (int j = 0; j < 9; j++)
                 {
-                    if (this.storedItem != null)
+                    if (storedItem != null)
                     {
-                        if (InventoryConfig.rainbowCursor && this.isSelected)
+                        if (InventoryConfig.rainbowBool.Value && isSelected)
                         {
-                            this.sprites[j].color = Color.Lerp(Color.Lerp(new Color(0f, 0f, 0f), color, 0.1f), color, this.fade * 0.5f);
+                            sprites[j].color = Color.Lerp(Color.Lerp(new Color(0f, 0f, 0f), color, 0.1f), color, fade * 0.5f);
                         }
                         else
                         {
-                            this.sprites[j].color = Color.Lerp(Color.Lerp(new Color(0f, 0f, 0f), this.storedItem.spriteColor, 0.1f), this.storedItem.spriteColor, this.fade * 0.5f);
+                            sprites[j].color = Color.Lerp(Color.Lerp(new Color(0f, 0f, 0f), storedItem.spriteColor, 0.1f), storedItem.spriteColor, fade * 0.5f);
                         }
-                        if (this.isSelected)
+                        if (isSelected)
                         {
-                            this.sprites[j].alpha = Mathf.Lerp(0f, 0.45f, this.fade);
+                            sprites[j].alpha = Mathf.Lerp(0f, 0.45f, fade);
                         }
                         else
                         {
-                            this.sprites[j].alpha = Mathf.Lerp(0f, 0.45f, inventory.fade);
+                            sprites[j].alpha = Mathf.Lerp(0f, 0.45f, inventory.fade);
                         }
                     }
                     else
                     {
-                        this.sprites[j].color = new Color(0f, 0f, 0f);
-                        this.sprites[j].alpha = Mathf.Lerp(0f, 0.35f, inventory.fade);
+                        sprites[j].color = new Color(0f, 0f, 0f);
+                        sprites[j].alpha = Mathf.Lerp(0f, 0.35f, inventory.fade);
                     }
                 }
                 //Item sprite
-                if (this.storedItem != null)
+                if (storedItem != null)
                 {
-                    this.itemSprite.alpha = Mathf.Lerp(0.74f, 1f, this.fade);
+                    itemSprite.alpha = Mathf.Lerp(0.74f, 1f, fade);
                 }
                 else
                 {
-                    this.itemSprite.alpha = 0f;
+                    itemSprite.alpha = 0f;
                 }
             }
         }
         else
         {
-            for (int i = 0; i < this.sprites.Length; i++)
+            for (int i = 0; i < sprites.Length; i++)
             {
-                if (this.sprites[i].alpha > 0f)
+                if (sprites[i].alpha > 0f)
                 {
-                    this.sprites[i].alpha -= 3f * Time.deltaTime;
+                    sprites[i].alpha -= 3f * Time.deltaTime;
                 }
             }
-            this.itemSprite.alpha -= 3f * Time.deltaTime;
+            itemSprite.alpha -= 3f * Time.deltaTime;
         }
     }
 
     public Vector2 DrawPos(float timeStacker)
     {
-        return this.pos;
+        return pos;
     }
 
     public int SideSprite(int side)
@@ -326,10 +326,10 @@ public class InventorySlot : HudPart
     public override void ClearSprites()
     {
         base.ClearSprites();
-        for (int i = 0; i < this.sprites.Length; i++)
+        for (int i = 0; i < sprites.Length; i++)
         {
-            this.sprites[i].RemoveFromContainer();
+            sprites[i].RemoveFromContainer();
         }
-        this.itemSprite.RemoveFromContainer();
+        itemSprite.RemoveFromContainer();
     }
 }

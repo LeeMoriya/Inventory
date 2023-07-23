@@ -12,10 +12,10 @@ public class InventorySave
     public static void SaveHooks()
     {
         On.PlayerProgression.WipeAll += PlayerProgression_WipeAll;
-        On.PlayerProgression.WipeSaveState += PlayerProgression_WipeSaveState;
+        On.PlayerProgression.WipeSaveState += PlayerProgression_WipeSaveState1;
     }
 
-    private static void PlayerProgression_WipeSaveState(On.PlayerProgression.orig_WipeSaveState orig, PlayerProgression self, int saveStateNumber)
+    private static void PlayerProgression_WipeSaveState1(On.PlayerProgression.orig_WipeSaveState orig, PlayerProgression self, SlugcatStats.Name saveStateNumber)
     {
         orig.Invoke(self, saveStateNumber);
         WipeSave(self.rainWorld.options.saveSlot, saveStateNumber);
@@ -42,12 +42,12 @@ public class InventorySave
             }
         }
     }
-    public static void WipeSave(int saveSlot, int slugcat)
+    public static void WipeSave(int saveSlot, SlugcatStats.Name slugcat)
     {
         string path = Custom.RootFolderDirectory() + Path.DirectorySeparatorChar + "UserData" + Path.DirectorySeparatorChar + "Inventory";
         if (Directory.Exists(path))
         {
-            string save = path + Path.DirectorySeparatorChar + "Inventory" + saveSlot.ToString() + slugcat.ToString() + ".txt";
+            string save = path + Path.DirectorySeparatorChar + "Inventory" + saveSlot.ToString() + slugcat.value.ToString() + ".txt";
             if (File.Exists(save))
             {
                 File.Delete(save);
@@ -55,7 +55,7 @@ public class InventorySave
         }
     }
 
-    public static void Save(int saveSlot, int slugcat)
+    public static void Save(int saveSlot, SlugcatStats.Name slugcat)
     {
         string path = Custom.RootFolderDirectory() + Path.DirectorySeparatorChar + "UserData" + Path.DirectorySeparatorChar + "Inventory";
         //Create Inventory save folder if it doesn't exist
@@ -64,18 +64,19 @@ public class InventorySave
             Directory.CreateDirectory(path);
         }
         //Create data string from current inventory and save it to a file
-        if (InventoryData.storedObjects == null || (InventoryData.storedObjects != null && InventoryData.storedObjects.Count == 0))
+        if (InventoryData.storedObjects == null)
         {
             return;
         }
         //Get current save slot
-        string save = path + Path.DirectorySeparatorChar + "Inventory" + saveSlot.ToString() + slugcat.ToString() + ".txt";
+        string save = path + Path.DirectorySeparatorChar + "Inventory" + saveSlot.ToString() + slugcat.value.ToString() + ".txt";
         string data = InventoryData.SaveString();
         File.WriteAllText(save, data);
         Debug.Log("Saving Inventory");
+
     }
 
-    public static void Load(int saveSlot, int slugcat)
+    public static void Load(int saveSlot, SlugcatStats.Name slugcat)
     {
         string path = Custom.RootFolderDirectory() + Path.DirectorySeparatorChar + "UserData" + Path.DirectorySeparatorChar + "Inventory";
         //Create Inventory save folder if it doesn't exist
@@ -84,7 +85,7 @@ public class InventorySave
             Directory.CreateDirectory(path);
         }
         //Load data string from file and load it into InventoryData
-        string save = path + Path.DirectorySeparatorChar + "Inventory" + saveSlot.ToString() + slugcat.ToString()+ ".txt";
+        string save = path + Path.DirectorySeparatorChar + "Inventory" + saveSlot.ToString() + slugcat.value.ToString()+ ".txt";
         if (File.Exists(save))
         {
             string data = File.ReadAllText(save);

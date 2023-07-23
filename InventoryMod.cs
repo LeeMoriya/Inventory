@@ -6,44 +6,51 @@ using BepInEx;
 using UnityEngine;
 using System.Reflection;
 using MonoMod.RuntimeDetour;
-using OptionalUI;
 
-[BepInPlugin("LeeMoriya.Inventory", "Inventory", "0.12")]
+[BepInPlugin("LeeMoriya.Inventory", "Inventory", "1.0")]
 public class InventoryMod : BaseUnityPlugin
 {
-    //AutoUpdate
-    public string updateURL = "http://beestuff.pythonanywhere.com/audb/api/mods/4/7";
-    public int version = 3;
-    public string keyE = "AQAB";
-    public string keyN = "lDaM5h0hJUvZcIdiWXH4qfdia/V8UWzikqRIiC9jVGA87jMrafo4EWOTk0MMIQZWHVy+msVzvEAVR3V45wZShFu7ylUndroL5u4zyqHfVeAeDIALfBrM3J4BIM1rMi4wieYdLIF6t2Uj4GVH7iU59AIfobew1vICUILu9Zib/Aw2QY6Nc+0Cz6Lw3xh7DL/trIMaW7yQfYRZUaEZBHelN2JGyUjKkbby4vL6gySfGlVl1OH0hYYhrhNwnQrOow8WXFMIu/WyTA3cY3wqkjd4/WRJ+EvYtMKTwfG+TZiHGst9Bg1ZTFfvEvrTFiPadTf19iUnfyL/QJaTAD8qe+rba5KwirIElovqFpYNH9tAr7SpjixjbT3Igmz+SlqGa9wSbm1QWt/76QqpyAYV/b5G/VzbytoZrhkEVdGuaotD4tXh462AhK5xoigB8PEt+T3nWuPdoZlVo5hRCxoNleH4yxLpVv8C7TpQgQHDqzHMcEX79xjiYiCvigCq7lLEdxUD0fhnxSYVK0O+y7T+NXkk3is/XqJxdesgyYUMT81MSou9Ur/2nv9H8IvA9QeIqso05hK3c496UOaRJS27WJhrxABtU+HHtxo9SifmXjisDj3IV46uTeVp5bivDTu1yBymgnU8qli/xmwWxKvOisi9ZOZsg4vFHaY31gdUBWOz4dU=";
-
-    public static string versionNumber = "v1.0d";
+    public static string versionNumber = "v1.0";
     public static BaseUnityPlugin instance;
     public static Inventory inventory;
+    public static bool init = false;
     private Hook mapHook;
+    public InventoryConfig config;
     public InventoryMod()
     {
         instance = this;
     }
 
-    public void OnEnable()
+    public void Awake()
     {
-        InventorySave.SaveHooks();
-        On.HUD.HUD.InitSinglePlayerHud += HUD_InitSinglePlayerHud;
-        On.Player.checkInput += Player_checkInput;
-        On.StoryGameSession.AddPlayer += StoryGameSession_AddPlayer;
-        On.SaveState.SessionEnded += SaveState_SessionEnded;
-        On.PlayerGraphics.InitiateSprites += PlayerGraphics_InitiateSprites;
-        On.MainLoopProcess.RawUpdate += MainLoopProcess_RawUpdate;
-        //On.Player.Grabability += Player_Grabability;
-        if (mapHook == null)
+        On.RainWorld.OnModsInit += delegate (On.RainWorld.orig_OnModsInit orig, RainWorld self)
         {
-            mapHook = new Hook(typeof(Player).GetProperty("RevealMap", propFlags).GetGetMethod(), typeof(InventoryMod).GetMethod("Player_get_RevealMap", myMethodFlags));
-        }
-        else
-        {
-            mapHook.Apply();
-        }
+            orig.Invoke(self);
+            if (!init)
+            {
+                init = true;
+                InventorySave.SaveHooks();
+                On.HUD.HUD.InitSinglePlayerHud += HUD_InitSinglePlayerHud;
+                On.Player.checkInput += Player_checkInput;
+                On.StoryGameSession.AddPlayer += StoryGameSession_AddPlayer;
+                On.SaveState.SessionEnded += SaveState_SessionEnded;
+                On.PlayerGraphics.InitiateSprites += PlayerGraphics_InitiateSprites;
+                On.MainLoopProcess.RawUpdate += MainLoopProcess_RawUpdate;
+                //On.Player.Grabability += Player_Grabability;
+                if (mapHook == null)
+                {
+                    mapHook = new Hook(typeof(Player).GetProperty("RevealMap", propFlags).GetGetMethod(), typeof(InventoryMod).GetMethod("Player_get_RevealMap", myMethodFlags));
+                }
+                else
+                {
+                    mapHook.Apply();
+                }
+
+                //Setup Config
+                config = new InventoryConfig();
+                MachineConnector.SetRegisteredOI("inventory", config);
+            }
+        };
     }
 
     private int Player_Grabability(On.Player.orig_Grabability orig, Player self, PhysicalObject obj)
@@ -52,12 +59,12 @@ public class InventoryMod : BaseUnityPlugin
         {
             return (int)Player.ObjectGrabability.OneHand;
         }
-        return orig.Invoke(self, obj);
+        return (int)orig.Invoke(self, obj);
     }
 
     private void MainLoopProcess_RawUpdate(On.MainLoopProcess.orig_RawUpdate orig, MainLoopProcess self, float dt)
     {
-        if (inventory != null && InventoryConfig.slowMenu && inventory.isShown && inventory.fade >= 1f)
+        if (inventory != null && InventoryConfig.slowBool.Value && inventory.isShown && inventory.fade >= 1f)
         {
             if (self.framesPerSecond > 18)
             {
@@ -79,7 +86,7 @@ public class InventoryMod : BaseUnityPlugin
     {
         orig.Invoke(self, game, survived, newMalnourished);
         int saveSlot = game.rainWorld.options.saveSlot;
-        int slugcat = self.saveStateNumber;
+        SlugcatStats.Name slugcat = self.saveStateNumber;
         //Survived without starving
         if (survived == true && !newMalnourished)
         {
