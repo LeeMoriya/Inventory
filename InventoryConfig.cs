@@ -19,7 +19,6 @@ public class InventoryConfig : OptionInterface
     public static Configurable<bool> rainbowBool;
     public static Configurable<Color> cursorColorConfig;
 
-
     //Preview Window
     public OpRect previewWindow;
     public OpLabel windowLabel;
@@ -51,10 +50,18 @@ public class InventoryConfig : OptionInterface
     //Mod Info
     public OpLabel infoLabel;
 
+    public InventoryConfig()
+    {
+        critBool = config.Bind<bool>("critBool", false, new ConfigurableInfo("Allows you to store any creature, living or dead that Slugcat can grab", null));
+        karmaBool = config.Bind<bool>("karmaBool", false, new ConfigurableInfo("Allows you to store Karma Flowers in the inventory - extremely unbalanced", null));
+        slowBool = config.Bind<bool>("slowBool", false, new ConfigurableInfo("Slows down time when the inventory is open", null));
+        rainbowBool = config.Bind<bool>("rainbowBool", false, new ConfigurableInfo("Changes the color of the inventory cursor to a rainbow - this setting overrides custom cursor color", null));
+        cursorColorConfig = config.Bind<Color>("cursorColorConfig", new Color(1f, 1f, 1f), new ConfigurableInfo("Set a custom color for the inventory cursor", null));
+    }
+
     public override void Initialize()
     {
         base.Initialize();
-
         config = new ConfigHolder(this);
 
         Tabs = new OpTab[1];
@@ -105,12 +112,6 @@ public class InventoryConfig : OptionInterface
         //Mod Info
         infoLabel = new OpLabel(new Vector2(300f,-5f), new Vector2(), "Inventory " + InventoryMod.versionNumber + " by LeeMoriya", FLabelAlignment.Center,false);
         Tabs[0].AddItems(infoLabel);
-
-        critBool = config.Bind<bool>("critBool", false, new ConfigurableInfo("Allows you to store any creature, living or dead that Slugcat can grab", null, ""));
-        karmaBool = config.Bind<bool>("karmaBool", false, new ConfigurableInfo("Allows you to store Karma Flowers in the inventory - extremely unbalanced", null, ""));
-        slowBool = config.Bind<bool>("slowBool", false, new ConfigurableInfo("Slows down time when the inventory is open", null, ""));
-        rainbowBool = config.Bind<bool>("rainbowBool", false, new ConfigurableInfo("Changes the color of the inventory cursor to a rainbow - this setting overrides custom cursor color", null, ""));
-        cursorColorConfig = config.Bind<Color>("cursorColorConfig", new Color(1f, 1f, 1f), new ConfigurableInfo("Set a custom color for the inventory cursor", null, "", ""));
     }
 
     public override void Update()
