@@ -6,6 +6,9 @@ using BepInEx;
 using UnityEngine;
 using System.Reflection;
 using MonoMod.RuntimeDetour;
+using System.Security.Permissions;
+
+[assembly: SecurityPermission(SecurityAction.RequestMinimum, SkipVerification = true)]
 
 [BepInPlugin("LeeMoriya.Inventory", "Inventory", "1.0")]
 public class InventoryMod : BaseUnityPlugin
@@ -113,7 +116,7 @@ public class InventoryMod : BaseUnityPlugin
     BindingFlags myMethodFlags = BindingFlags.Static | BindingFlags.Public;
     public static bool Player_get_RevealMap(orig_RevealMap orig, Player self)
     {
-        return self.mapInput.mp && inventory.showMap;
+        return (!ModManager.CoopAvailable || !self.jollyButtonDown) && self.input[0].mp && inventory.showMap && !self.inVoidSea;
     }
 
     //Inventory controls
@@ -135,7 +138,7 @@ public class InventoryMod : BaseUnityPlugin
     private void HUD_InitSinglePlayerHud(On.HUD.HUD.orig_InitSinglePlayerHud orig, HUD.HUD self, RoomCamera cam)
     {
         orig.Invoke(self, cam);
-        inventory = new GridInventory(self);
+        inventory = new GridInventory(self, cam.game);
         self.AddPart(inventory);
     }
 }

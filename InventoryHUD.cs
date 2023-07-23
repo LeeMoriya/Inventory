@@ -22,10 +22,12 @@ public class Inventory : HudPart
     public int inputDelay = 0;
     public float fade = 0f;
     public Player.InputPackage invInput = new Player.InputPackage();
+    public RainWorldGame game;
+    public Player player;
 
-    public Inventory(HUD.HUD hud) : base(hud)
+    public Inventory(HUD.HUD hud, RainWorldGame game) : base(hud)
     {
-
+        this.game = game;
     }
 
     public void StoreItem()
@@ -51,7 +53,6 @@ public class Inventory : HudPart
         }
         if (activeSlot != null)
         {
-            Player player = hud.owner as Player;
             //STORE ITEM
             if (activeSlot.storedItem == null)
             {
@@ -200,9 +201,10 @@ public class Inventory : HudPart
 
 public class GridInventory : Inventory
 {
-    public GridInventory(HUD.HUD hud) : base(hud)
+    public GridInventory(HUD.HUD hud, RainWorldGame game) : base(hud, game)
     {
         this.hud = hud;
+        this.game = game;
         pos = hud.owner.MapOwnerInRoomPosition;
         //Generate inventory slots based on the invSize IntVector
         List<InventorySlot> slots = new List<InventorySlot>();
@@ -234,7 +236,16 @@ public class GridInventory : Inventory
     public override void Update()
     {
         base.Update();
-        Player player = (hud.owner as Player);
+        for (int i = 0; i < game.AlivePlayers.Count; i++)
+        {
+            if (game.AlivePlayers[i].realizedCreature != null && (game.AlivePlayers[i].realizedCreature as Player).mapInput.mp)
+            {
+                player = (game.AlivePlayers[i].realizedCreature as Player);
+                player.standStillOnMapButton = true;
+                break;
+            }
+        }
+
         if (player != null && player.room != null)
         {
             //Holding Map
@@ -388,15 +399,19 @@ public class GridInventory : Inventory
                 inventorySlots[i].isSelected = false;
             }
         }
-        invInput = player.mapInput;
+        if (player != null)
+        {
+            invInput = player.mapInput;
+        }
     }
 }
 
 public class RadialInventory : Inventory
 {
-    public RadialInventory(HUD.HUD hud) : base(hud)
+    public RadialInventory(HUD.HUD hud, RainWorldGame game) : base(hud, game)
     {
         this.hud = hud;
+        this.game = game;
         pos = hud.owner.MapOwnerInRoomPosition;
         //Generate inventory slots based on the invSize IntVector
         inventorySlots = new InventorySlot[invSlots];
