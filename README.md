@@ -14,6 +14,5 @@ Jump - Store/retrieve
 Pickup - Toggle Map
 
 ## Download
-Requires BepInEx / ConfigMachine
 
-Download the latest version [here](https://github.com/LeeMoriya/Inventory/releases/tag/V1.01)
+Download the latest version [here](https://github.com/LeeMoriya/Inventory/releases/tag/V1.03)
