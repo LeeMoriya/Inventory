@@ -15,4 +15,4 @@ Pickup - Toggle Map
 
 ## Download
 
-Download the latest version [here](https://github.com/LeeMoriya/Inventory/releases/tag/V1.03)
+Download the latest version [here](https://github.com/LeeMoriya/Inventory/releases/tag/v1.05)
