@@ -16,7 +16,7 @@
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
+    <DebugType>portable</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>F:\Steam Games\steamapps\common\Rain World\RainWorld_Data\StreamingAssets\mods\inventory\plugins\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
@@ -34,6 +34,10 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Assembly-CSharp-nstrip">
+      <HintPath>F:\Modding\Assembly-CSharp-nstrip.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="BepInEx">
       <HintPath>F:\Steam Games\steamapps\common\Rain World\BepInEx\core\BepInEx.dll</HintPath>
       <Private>False</Private>
@@ -45,11 +49,6 @@
     <Reference Include="MonoMod.RuntimeDetour, Version=19.11.5.1, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>F:\Steam Games\steamapps\common\Rain World\BepInEx\core\MonoMod.RuntimeDetour.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="PUBLIC-Assembly-CSharp, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>F:\Steam Games\steamapps\common\Rain World\BepInEx\utils\PUBLIC-Assembly-CSharp.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="System" />

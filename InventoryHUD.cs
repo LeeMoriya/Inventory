@@ -6,6 +6,7 @@ using HUD;
 using UnityEngine;
 using RWCustom;
 using System.Text.RegularExpressions;
+using System.Reflection;
 
 public class Inventory : HudPart
 {
@@ -30,7 +31,170 @@ public class Inventory : HudPart
         this.game = game;
     }
 
-    public void StoreItem()
+
+    public bool CanIStoreThis(InventorySlot activeSlot, int index)
+    {
+        //Check on hand at a time
+        for (int i = 0; i < 2; i++)
+        {
+            //Player is holding something
+            if (player.grasps[i] != null)
+            {
+                AbstractPhysicalObject apo;
+                if (player.grasps[i].grabbed.abstractPhysicalObject != null)
+                {
+                    apo = player.grasps[i].grabbed.abstractPhysicalObject;
+                }
+                else
+                {
+                    Debug.Log("INV: Item has no Abstract version");
+                    return false;
+                }
+
+                //Carried object is a creature
+                if (apo.type == AbstractPhysicalObject.AbstractObjectType.Creature)
+                {
+                    ////Test that the object is valid
+                    //bool invalid = false;
+                    //AbstractCreature test = null;
+                    //try
+                    //{
+                    //    test = SaveState.AbstractCreatureFromString(apo.world, apo.ToString(), false);
+                    //}
+                    //catch { invalid = true; }
+                    //if (invalid || test == null)
+                    //{
+                    //    Debug.LogException(new Exception("INV: Attempted to store invalid object: " + apo.type.value));
+                    //    return false;
+                    //}
+
+                    //Don't store the creature if the option is disabled, or its a Player
+                    if (!InventoryConfig.critBool.Value || (apo as AbstractCreature).creatureTemplate.type == CreatureTemplate.Type.Slugcat)
+                    {
+                        return false;
+                    }
+                }
+                //Carried object is an item
+                else
+                {
+                    //Test that the object is valid
+                    bool invalid = false;
+                    AbstractPhysicalObject test = null;
+                    try
+                    {
+                        test = SaveState.AbstractPhysicalObjectFromString(apo.world, apo.ToString());
+                    }
+                    catch { invalid = true; }
+                    if (invalid || test == null)
+                    {
+                        Debug.LogException(new Exception("INV: Attempted to store invalid object: " + apo.type.value));
+                        return false;
+                    }
+
+                    if (apo.type == AbstractPhysicalObject.AbstractObjectType.KarmaFlower && !InventoryConfig.karmaBool.Value)
+                    {
+                        return false;
+                    }
+
+                    //Ugly hardcoded SeedCob fix
+                    if(apo.type.value == "SeedCob")
+                    {
+                        Debug.Log("RotundWorld SeedCobs break Inventory, sorry... you can't store this!");
+                        return false;
+                    }
+                }
+                return true;
+            }
+        }
+        return false;
+    }
+
+
+    public void RetrieveItem(InventorySlot activeSlot)
+    {
+        //Check for free grasps
+        int freeGrasp = 2;
+        //bool twoHands = false;
+        for (int i = 0; i < player.grasps.Length; i++)
+        {
+            if (player.grasps[i] != null)
+            {
+                freeGrasp--;
+            }
+        }
+        if (freeGrasp == 0)
+        {
+            hud.PlaySound(SoundID.MENU_Error_Ping);
+            return;
+        }
+        AbstractPhysicalObject apo;
+        //Re-create creature from string
+        if (activeSlot.storedItem.type == AbstractPhysicalObject.AbstractObjectType.Creature)
+        {
+            string[] array = Regex.Split(activeSlot.storedItem.data, "<cA>");
+            EntityID id = EntityID.FromString(array[1]);
+            apo = new AbstractCreature(player.room.world, StaticWorld.GetCreatureTemplate(activeSlot.storedItem.critType), null, player.coord, id);
+            (apo as AbstractCreature).state.LoadFromString(Regex.Split(array[3], "<cB>"));
+        }
+        //Re-create item from string
+        else
+        {
+            Debug.Log("RECREATE FROM SAVE STRING");
+            apo = SaveState.AbstractPhysicalObjectFromString(player.room.world, activeSlot.storedItem.data);
+            if (apo is AbstractConsumable)
+            {
+                (apo as AbstractConsumable).Consume();
+            }
+        }
+
+        //Place the object in the room and make Slugcat grab it with a free hand
+        Debug.Log("ADD ENTITY");
+        player.room.abstractRoom.AddEntity(apo);
+        apo.pos = player.abstractCreature.pos;
+        Debug.Log("REALIZE OBJECT");
+        apo.RealizeInRoom();
+        if (apo.realizedObject != null)
+        {
+            apo.realizedObject.firstChunk.HardSetPosition(player.mainBodyChunk.pos);
+            for (int i = 0; i < 2; i++)
+            {
+                if (player.grasps[i] == null)
+                {
+                    if (player.CanIPickThisUp(apo.realizedObject))
+                    {
+                        //Spear check
+                        bool hasSpear = false;
+                        for (int s = 0; s < 2; s++)
+                        {
+                            if (player.grasps[s] != null && player.grasps[s].grabbed != null)
+                            {
+                                if (player.grasps[s].grabbed is Spear)
+                                {
+                                    Debug.Log("HAS SPEAR");
+                                    hasSpear = true;
+                                }
+                            }
+                        }
+                        if (hasSpear && apo.type == AbstractPhysicalObject.AbstractObjectType.Spear && player.spearOnBack != null && !player.spearOnBack.HasASpear)
+                        {
+                            player.spearOnBack.SpearToBack(apo.realizedObject as Spear);
+                        }
+                        else
+                        {
+                            Debug.Log("SLUGCAT GRAB");
+                            player.SlugcatGrab(apo.realizedObject, i);
+                        }
+                    }
+                }
+            }
+        }
+        //Empty slot after retrieving item
+        hud.PlaySound(SoundID.Slugcat_Stash_Spear_On_Back);
+        InventoryData.RemoveStoredObject(activeSlot.storedItem.index);
+        activeSlot.storedItem = null;
+    }
+
+    public void InteractWithSlot()
     {
         //Get highlighted slot
         InventorySlot activeSlot = null;
@@ -45,157 +209,105 @@ public class Inventory : HudPart
                     index = i;
                 }
             }
-            if(this is RadialInventory)
-            {
-                activeSlot = inventorySlots[selectedSlot];
-                index = selectedSlot;
-            }
         }
         if (activeSlot != null)
         {
             //STORE ITEM
             if (activeSlot.storedItem == null)
             {
-                for (int i = 0; i < 2; i++)
+                if (CanIStoreThis(activeSlot, index))
                 {
-                    if (player.grasps[i] != null)
-                    {
-                        AbstractPhysicalObject apo = player.grasps[i].grabbed.abstractPhysicalObject;
-                        //Carried object is a creature
-                        if (apo.type == AbstractPhysicalObject.AbstractObjectType.Creature)
-                        {
-                            if (!InventoryConfig.critBool.Value || (apo as AbstractCreature).creatureTemplate.type == CreatureTemplate.Type.Slugcat)
-                            {
-                                hud.PlaySound(SoundID.MENU_Error_Ping);
-                                return;
-                            }
-                            activeSlot.storedItem = InventoryData.NewStoredObject(null, apo as AbstractCreature, index);
-                            player.room.RemoveObject((apo as AbstractCreature).realizedCreature);
-                            apo.Room.entities.Remove(apo);
-                            //if ((apo as AbstractCreature).world.GetSpawner((apo as AbstractCreature).ID) != null && (apo as AbstractCreature).world.GetSpawner((apo as AbstractCreature).ID) is World.Lineage)
-                            //{
-                            //    ((apo as AbstractCreature).world.GetSpawner((apo as AbstractCreature).ID) as World.Lineage).ChanceToProgress((apo as AbstractCreature).world);
-                            //}
-                            (player.room.game.session as StoryGameSession).saveState.waitRespawnCreatures.Add((apo as AbstractCreature).ID.spawner);
-                        }
-                        //Carried object is an item
-                        else
-                        {
-                            if(apo.type == AbstractPhysicalObject.AbstractObjectType.KarmaFlower && !InventoryConfig.karmaBool.Value)
-                            {
-                                hud.PlaySound(SoundID.MENU_Error_Ping);
-                                return;
-                            }
-                            activeSlot.storedItem = InventoryData.NewStoredObject(apo, null, index);
-                            apo.Room.entities.Remove(apo);
-                            apo.destroyOnAbstraction = true;
-                            apo.Abstractize(apo.pos);
-                        }
-                        //Release grasp and assign slot's sprite and color
-                        player.grasps[i].Release();
-                        activeSlot.itemSprite.SetElementByName(activeSlot.storedItem.spriteName);
-                        activeSlot.itemSprite.color = activeSlot.storedItem.spriteColor;
-                        break;
-                    }
+                    StoreItem(activeSlot, index);
                 }
-                (hud.owner as Player).room.PlaySound(SoundID.Slugcat_Stash_Spear_On_Back, (hud.owner as Player).mainBodyChunk, false, 2f, 0.9f);
             }
-            //RETRIEVE ITEM
             else
             {
-                //Check for free grasps
-                int freeGrasp = 2;
-                for (int i = 0; i < player.grasps.Length; i++)
-                {
-                    if (player.grasps[i] != null)
-                    {
-                        freeGrasp--;
-                    }
-                }
-                if (freeGrasp == 0)
-                {
-                    hud.PlaySound(SoundID.MENU_Error_Ping);
-                    return;
-                }
-                AbstractPhysicalObject apo;
-                //Re-create creature from string
-                if (activeSlot.storedItem.type == AbstractPhysicalObject.AbstractObjectType.Creature)
-                {
-                    string[] array = Regex.Split(activeSlot.storedItem.data, "<cA>");
-                    EntityID id = EntityID.FromString(array[1]);
-                    apo = new AbstractCreature(player.room.world, StaticWorld.GetCreatureTemplate(activeSlot.storedItem.critType), null, player.coord, id);
-                    (apo as AbstractCreature).state.LoadFromString(Regex.Split(array[3], "<cB>"));
-                }
-                //Re-create item from string
-                else
-                {
-                    Debug.Log("RECREATE FROM SAVE STRING");
-                    apo = SaveState.AbstractPhysicalObjectFromString(player.room.world, activeSlot.storedItem.data);
-                }
-                //Place the object in the room and make Slugcat grab it with a free hand
-                Debug.Log("ADD ENTITY");
-                player.room.abstractRoom.AddEntity(apo);
-                apo.pos = player.abstractCreature.pos;
-                Debug.Log("REALIZE OBJECT");
-                apo.RealizeInRoom();
-                if (apo.realizedObject != null)
-                {
-                    apo.realizedObject.firstChunk.HardSetPosition(player.mainBodyChunk.pos);
-                    for (int i = 0; i < 2; i++)
-                    {
-                        if (player.grasps[i] == null)
-                        {
-                            if (player.CanIPickThisUp(apo.realizedObject))
-                            {
-                                //Spear check
-                                bool hasSpear = false;
-                                for (int s = 0; s < 2; s++)
-                                {
-                                    if(player.grasps[s] != null && player.grasps[s].grabbed != null)
-                                    {
-                                        if(player.grasps[s].grabbed is Spear)
-                                        {
-                                            Debug.Log("HAS SPEAR");
-                                            hasSpear = true;
-                                        }
-                                        //try
-                                        //{
-                                        //    //Retrieving two-handed object = Empty current grasps
-                                        //    if (player.Grabability(apo.realizedObject) != Player.ObjectGrabability.OneHand && player.Grabability(apo.realizedObject) != Player.ObjectGrabability.BigOneHand)
-                                        //    {
-                                        //        player.grasps[s].Release();
-                                        //    }
-                                        //    //Player is holding two-handed object and retrieving something = Empty current grasps
-                                        //    else if (player.Grabability(player.grasps[s].grabbed) != Player.ObjectGrabability.OneHand && player.Grabability(player.grasps[s].grabbed) != Player.ObjectGrabability.BigOneHand)
-                                        //    {
-                                        //        player.grasps[s].Release();
-                                        //    }
-                                        //}
-                                        //catch(Exception e)
-                                        //{
-                                        //    Debug.LogException(e);
-                                        //}
-                                    }
-                                }
-                                if(hasSpear && apo.type == AbstractPhysicalObject.AbstractObjectType.Spear && player.spearOnBack != null && !player.spearOnBack.HasASpear)
-                                {
-                                    player.spearOnBack.SpearToBack(apo.realizedObject as Spear);
-                                }
-                                else
-                                {
-                                    Debug.Log("SLUGCAT GRAB");
-                                    player.SlugcatGrab(apo.realizedObject, i);
-                                }
-                            }
-                        }
-                    }
-                }
-                //Empty slot after retrieving item
-                hud.PlaySound(SoundID.Slugcat_Stash_Spear_On_Back);
-                InventoryData.RemoveStoredObject(activeSlot.storedItem.index);
-                activeSlot.storedItem = null;
+                RetrieveItem(activeSlot);
             }
         }
+    }
+
+    public void StoreItem(InventorySlot activeSlot, int index)
+    {
+        for (int i = 0; i < 2; i++)
+        {
+            if (player.grasps[i] != null)
+            {
+                AbstractPhysicalObject apo = player.grasps[i].grabbed.abstractPhysicalObject;
+
+                //Carried object is a creature
+                if (apo.type == AbstractPhysicalObject.AbstractObjectType.Creature)
+                {
+                    //Create a new storedObject for this creature
+                    activeSlot.storedItem = InventoryData.NewStoredObject(null, apo as AbstractCreature, index);
+                    if (activeSlot.storedItem == null)
+                    {
+                        Debug.LogException(new Exception("INV: Attempted to store invalid object: " + apo.type.value));
+                        hud.PlaySound(SoundID.MENU_Error_Ping);
+                        return;
+                    }
+                    else
+                    {
+                        Debug.Log("INV: " + (activeSlot.storedItem.type != null ? activeSlot.storedItem.type.value : "Null apo type"));
+                        Debug.Log("INV: " + (activeSlot.storedItem.critType != null ? activeSlot.storedItem.critType.value : "Null crit type"));
+                    }
+                    try
+                    {
+                        (apo as AbstractCreature).realizedCreature.RemoveFromRoom();
+                        apo.Room.RemoveEntity(apo as AbstractCreature);
+                        (apo as AbstractCreature).realizedCreature.Destroy();
+                        (player.room.game.session as StoryGameSession).saveState.waitRespawnCreatures.Add((apo as AbstractCreature).ID.spawner);
+                    }
+                    catch
+                    {
+                        Debug.LogException(new Exception("Failed to remove Creature from world when storing object, it may not support being Abstracized or was not created from a Spawner"));
+                        hud.PlaySound(SoundID.MENU_Error_Ping);
+                        return;
+                    }
+                }
+                //Carried object is an item
+                else
+                {
+                    try
+                    {
+                        //Store the object
+                        activeSlot.storedItem = InventoryData.NewStoredObject(apo, null, index);
+                        if (activeSlot.storedItem == null)
+                        {
+                            Debug.LogException(new Exception("INV: Attempted to store invalid object: " + apo.type.value));
+                            hud.PlaySound(SoundID.MENU_Error_Ping);
+                            return;
+                        }
+                        //Remove it from the room
+                        apo.Room.entities.Remove(apo);
+                        apo.destroyOnAbstraction = true;
+                        apo.Abstractize(apo.pos);
+
+                        ////Try immediately re-adding it
+                        //player.room.abstractRoom.AddEntity(apo);
+                        //apo.pos = player.abstractCreature.pos;
+                        //apo.RealizeInRoom();
+
+                        ////Remove it again
+                        //apo.Room.entities.Remove(apo);
+                        //apo.destroyOnAbstraction = true;
+                        //apo.Abstractize(apo.pos);
+                    }
+                    catch
+                    {
+                        //If it fails at any point, don't store the object
+                        InventoryData.RemoveStoredObject(index);
+                        return;
+                    }
+                }
+                //Release grasp and assign slot's sprite and color
+                player.grasps[i].Release();
+                activeSlot.itemSprite.SetElementByName(activeSlot.storedItem.spriteName);
+                activeSlot.itemSprite.color = activeSlot.storedItem.spriteColor;
+                break;
+            }
+        }
+        player.room.PlaySound(SoundID.Slugcat_Stash_Spear_On_Back, player.mainBodyChunk, false, 2f, 0.9f);
     }
 }
 
@@ -236,12 +348,46 @@ public class GridInventory : Inventory
     public override void Update()
     {
         base.Update();
+
+        KeyCode key = KeyCode.None;
         for (int i = 0; i < game.AlivePlayers.Count; i++)
         {
-            if (game.AlivePlayers[i].realizedCreature != null && (game.AlivePlayers[i].realizedCreature as Player).mapInput.mp)
+            switch (i)
+            {
+                case 0:
+                    if(InventoryConfig.invKey1.Value != KeyCode.None)
+                    {
+                        key = InventoryConfig.invKey1.Value;
+                    }
+                    break;
+                case 1:
+                    if (InventoryConfig.invKey2.Value != KeyCode.None)
+                    {
+                        key = InventoryConfig.invKey2.Value;
+                    }
+                    break;
+                case 2:
+                    if (InventoryConfig.invKey3.Value != KeyCode.None)
+                    {
+                        key = InventoryConfig.invKey3.Value;
+                    }
+                    break;
+                case 3:
+                    if (InventoryConfig.invKey4.Value != KeyCode.None)
+                    {
+                        key = InventoryConfig.invKey4.Value;
+                    }
+                    break;
+            }
+
+            //If the player is holding map, or if a custom keybind has been set and is being held
+            if (game.AlivePlayers[i].realizedCreature != null && ((game.AlivePlayers[i].realizedCreature as Player).mapInput.mp || (key != KeyCode.None && Input.GetKey(key))))
             {
                 player = (game.AlivePlayers[i].realizedCreature as Player);
-                player.standStillOnMapButton = true;
+                if(key != KeyCode.None && Input.GetKey(key))
+                {
+                    showMap = false;
+                }
                 break;
             }
         }
@@ -249,19 +395,33 @@ public class GridInventory : Inventory
         if (player != null && player.room != null)
         {
             //Holding Map
-            if (player.mapInput.mp && !showMap)
+            if ((player.mapInput.mp && !showMap && key == KeyCode.None) || !player.mapInput.mp && key != KeyCode.None && Input.GetKey(key))
             {
                 isShown = true;
+                
             }
             else
             {
                 isShown = false;
             }
             //Release Map
-            if (!player.mapInput.mp)
+            if (!player.mapInput.mp && key == KeyCode.None)
             {
-                //showMap = false;
                 isShown = false;
+            }
+            //Toggle map
+            if (player.mapInput.mp && player.mapInput.pckp && inputDelay <= 0 && key == KeyCode.None)
+            {
+                if (showMap)
+                {
+                    showMap = false;
+                }
+                else
+                {
+                    showMap = true;
+                    hud.PlaySound(SoundID.Slugcat_Ghost_Appear);
+                }
+                inputDelay = 12;
             }
             //Position
             if (isShown)
@@ -288,35 +448,7 @@ public class GridInventory : Inventory
                 {
                     fade += 10f * Time.deltaTime;
                 }
-            }
-            else
-            {
-                if (fade > 0f)
-                {
-                    fade -= 10f * Time.deltaTime;
-                }
-            }
-            //Tick down input delay
-            if (inputDelay > 0)
-            {
-                inputDelay--;
-            }
-            if (player.mapInput.mp)
-            {
-                //Toggle map
-                if (player.mapInput.pckp && inputDelay <= 0)
-                {
-                    if (showMap)
-                    {
-                        showMap = false;
-                    }
-                    else
-                    {
-                        showMap = true;
-                        hud.PlaySound(SoundID.Slugcat_Ghost_Appear);
-                    }
-                    inputDelay = 12;
-                }
+
                 //Player cannot manage inventory unless it has fully appeared on-screen.
                 //This prevents the player accidently triggering an action the moment they open the menu.
                 //This doesn't apply to opening the map however.
@@ -328,7 +460,7 @@ public class GridInventory : Inventory
                 if (player.mapInput.jmp && !invInput.jmp)
                 {
                     inputDelay = 15;
-                    StoreItem();
+                    InteractWithSlot();
                 }
                 //Left
                 if ((player.mapInput.x < 0f && invInput.x == 0f) || (player.mapInput.x < 0f && inputDelay <= 0))
@@ -386,6 +518,18 @@ public class GridInventory : Inventory
                     inputDelay = 18;
                     hud.PlaySound(SoundID.MENU_Button_Standard_Button_Pressed);
                 }
+            }
+            else
+            {
+                if (fade > 0f)
+                {
+                    fade -= 10f * Time.deltaTime;
+                }
+            }
+            //Tick down input delay
+            if (inputDelay > 0)
+            {
+                inputDelay--;
             }
         }
         for (int i = 0; i < inventorySlots.Length; i++)
@@ -505,10 +649,12 @@ public class RadialInventory : Inventory
                     if (showMap)
                     {
                         showMap = false;
+                        Debug.Log("Hide Map");
                     }
                     else
                     {
                         showMap = true;
+                        Debug.Log("Show Map");
                         hud.PlaySound(SoundID.Slugcat_Ghost_Appear);
                     }
                     inputDelay = 12;
@@ -570,7 +716,7 @@ public class RadialInventory : Inventory
                 if (player.mapInput.jmp && !invInput.jmp)
                 {
                     inputDelay = 15;
-                    StoreItem();
+                    InteractWithSlot();
                 }
             }
         }

@@ -6,7 +6,7 @@ using UnityEngine;
 using RWCustom;
 using System.Text.RegularExpressions;
 using HUD;
-
+using Random = UnityEngine.Random;
 
 public static class InventoryData
 {
@@ -41,13 +41,29 @@ public static class InventoryData
                 return storedObjects[i];
             }
         }
-        storedObjects.Add(new StoredObject(apo, crit, index));
+        StoredObject newObject = null;
+        try
+        {
+            newObject = new StoredObject(apo, crit, index);
+        }
+        catch
+        {
+            Debug.LogException(new Exception("Failed to created StoredObject"));
+        }
+        if (newObject != null)
+        {
+            storedObjects.Add(newObject);
+        }
+        else
+        {
+            Debug.Log("Error creating or obtaining stored object with index " + index);
+            return null;
+        }
         for (int i = 0; i < storedObjects.Count; i++)
         {
             if (storedObjects[i].index == index)
             {
                 Debug.Log("New stored object created with index " + index);
-                Debug.Log("Stored item: " + apo.type.ToString());
                 return storedObjects[i];
             }
         }
@@ -124,7 +140,7 @@ public static class InventoryData
             Debug.Log(objData[i]);
         }
         //0 - type of item
-        SObj.type =  new AbstractPhysicalObject.AbstractObjectType(objData[0], false);
+        SObj.type = new AbstractPhysicalObject.AbstractObjectType(objData[0], false);
         Debug.Log(SObj.type.ToString());
         //1 - type of creature
         SObj.critType = new CreatureTemplate.Type(objData[1]);
@@ -201,10 +217,21 @@ public static class InventoryData
                 {
                     spriteName = "Futile_White";
                     spriteColor = new Color(1f, 0f, 1f);
-                    if(type == AbstractPhysicalObject.AbstractObjectType.KarmaFlower)
+                    if (type == AbstractPhysicalObject.AbstractObjectType.KarmaFlower)
                     {
                         spriteName = "FlowerMarker";
                         spriteColor = RainWorld.GoldRGB;
+                    }
+                }
+                if (apo is AbstractConsumable)
+                {
+                    if (apo is DataPearl.AbstractDataPearl)
+                    {
+                        (apo as DataPearl.AbstractDataPearl).Consume();
+                    }
+                    else
+                    {
+                        (apo as AbstractConsumable).Consume();
                     }
                 }
             }
@@ -214,15 +241,36 @@ public static class InventoryData
                 type = crit.type;
                 critType = crit.creatureTemplate.type;
                 data = SaveState.AbstractCreatureToStringStoryWorld(crit);
+                Debug.Log("Stored Creature: " + data);
+                Debug.Log("critType: " + critType.value);
                 CreatureSymbol.IconSymbolData creature;
                 try
                 {
                     creature = CreatureSymbol.SymbolDataFromCreature(crit);
                     spriteName = CreatureSymbol.SpriteNameOfCreature(creature);
                     spriteColor = CreatureSymbol.ColorOfCreature(creature);
+                    if (critType == MoreSlugcats.MoreSlugcatsEnums.CreatureTemplateType.SlugNPC)
+                    {
+                        int.TryParse(Regex.Split(data, "<cA>")[1].Split('.')[2], out int ID);
+                        Debug.Log("ID of SlugNPC: " + ID.ToString());
+
+                        Random.State state = Random.state;
+                        Random.InitState(ID);
+
+                        float Met = Mathf.Pow(Random.Range(0f, 1f), 1.5f);
+                        float Stealth = Mathf.Pow(Random.Range(0f, 1f), 1.5f);
+
+                        float H = Mathf.Lerp(Random.Range(0.15f, 0.58f), Random.value, Mathf.Pow(Random.value, 1.5f - Met));
+                        float S = Mathf.Pow(Random.Range(0f, 1f), 0.3f + Stealth * 0.3f);
+                        bool Dark = (Random.Range(0f, 1f) <= 0.3f + Stealth * 0.2f);
+                        float L = Mathf.Pow(Random.Range(Dark ? 0.9f : 0.75f, 1f), 1.5f - Stealth);
+
+                        spriteColor = Custom.HSL2RGB(H, S, L);
+                    }
                 }
                 catch
                 {
+                    Debug.Log("StoreObject creation failed getting SymbolData");
                     spriteName = "Futile_White";
                     spriteColor = new Color(1f, 0f, 1f);
                 }
