@@ -132,7 +132,8 @@ public class Inventory : HudPart
         if (activeSlot.storedItem.type == AbstractPhysicalObject.AbstractObjectType.Creature)
         {
             string[] array = Regex.Split(activeSlot.storedItem.data, "<cA>");
-            EntityID id = EntityID.FromString(array[1]);
+            Debug.Log($"{array[1]}");
+            EntityID id = EntityID.FromString(Regex.Split(array[1], "<cB>")[0]);
             apo = new AbstractCreature(player.room.world, StaticWorld.GetCreatureTemplate(activeSlot.storedItem.critType), null, player.coord, id);
             (apo as AbstractCreature).state.LoadFromString(Regex.Split(array[3], "<cB>"));
         }
@@ -249,7 +250,7 @@ public class Inventory : HudPart
                     else
                     {
                         Debug.Log("INV: " + (activeSlot.storedItem.type != null ? activeSlot.storedItem.type.value : "Null apo type"));
-                        Debug.Log("INV: " + (activeSlot.storedItem.critType != null ? activeSlot.storedItem.critType.value : "Null crit type"));
+                        Debug.Log("INV: " + (activeSlot.storedItem.critType != null ? activeSlot.storedItem.critType.value + " | " + activeSlot.storedItem.data : "Null crit type"));
                     }
                     try
                     {
